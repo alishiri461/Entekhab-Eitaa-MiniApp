@@ -62,4 +62,5 @@ python -m http.server 4173
 - [معماری](docs/ARCHITECTURE.md)
 - [قراردادهای API](docs/API-CONTRACTS.md)
 - [امنیت](docs/SECURITY.md)
+- [برنامه آزمون دستی](docs/TEST-PLAN.md)
 - [نقشه راه](docs/ROADMAP.md)
