@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0b1220">
-    <meta name="description" content="همیار انتخاب؛ دستیار هوشمند خدمات فناوری اطلاعات">
-    <title>ورود | همیار انتخاب</title>
+    <meta name="description" content="همیار انتخاب؛ درگاه هوشمند خدمات فناوری اطلاعات گروه انتخاب">
+    <title>همیار انتخاب | خدمات فناوری اطلاعات</title>
     <link rel="stylesheet" href="./src/styles/global.css">
     <script src="https://developer.eitaa.com/eitaa-web-app.js"></script>
     <script src="./src/config.js"></script>
@@ -13,98 +13,96 @@
   </head>
   <body>
     <main class="app-shell">
-      <header class="topbar">
-        <div class="brand-mark" aria-hidden="true">هـ</div>
-        <div>
-          <p class="eyebrow">گروه انتخاب</p>
-          <h1>همیار انتخاب</h1>
-          <p class="subtitle">همیار هوشمند خدمات فناوری اطلاعات</p>
-        </div>
-      </header>
-
-      <section class="welcome-card" aria-labelledby="welcome-title">
-        <span class="status-dot" aria-hidden="true"></span>
-        <p class="eyebrow">مرکز خدمات فناوری اطلاعات</p>
-        <h2 id="welcome-title">سلام، خوش آمدید</h2>
-        <p>برای استفاده از خدمات سازمانی، با شماره موبایل ثبت‌شده در سامانه منابع انسانی وارد شوید.</p>
-      </section>
-
-      <section class="auth-card" aria-label="احراز هویت">
-        <div id="login-panel">
-          <div class="section-heading">
-            <span class="step-number">۱</span>
-            <div>
-              <h2>ورود به حساب سازمانی</h2>
-              <p>کد یک‌بارمصرف برای شما پیامک می‌شود.</p>
-            </div>
+      <section id="login-panel" class="auth-screen" aria-label="ورود به همیار انتخاب">
+        <div class="auth-visual">
+          <div class="visual-brand">
+            <span class="brand-mark" aria-hidden="true"><span>هـ</span></span>
+            <span><strong>همیار انتخاب</strong><small>گروه صنعتی انتخاب</small></span>
           </div>
-          <form id="mobile-form" novalidate>
-            <label for="mobile">شماره موبایل سازمانی</label>
-            <input id="mobile" name="mobile" type="tel" inputmode="tel" autocomplete="tel"
-              placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="13" dir="ltr" required>
-            <button id="request-otp-button" class="primary-button" type="submit">دریافت کد تأیید</button>
+          <div class="visual-copy">
+            <span class="eyebrow"><i class="live-dot"></i> درگاه یکپارچه خدمات فناوری اطلاعات</span>
+            <h1>پشتیبانی هوشمند،<br><em>همیشه در کنار شما</em></h1>
+            <p>پرسش‌های خود را مطرح کنید، درخواست پشتیبانی ثبت کنید و راهکارهای سازمانی را در یک مسیر ساده دنبال کنید.</p>
+          </div>
+          <div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div>
+          <div class="visual-foot"><span>EN TEKHAB GROUP</span><span>SMART IT SERVICES</span></div>
+        </div>
+
+        <div class="auth-content">
+          <div class="auth-mobile-brand"><span class="brand-mark" aria-hidden="true">هـ</span><strong>همیار انتخاب</strong></div>
+          <div class="auth-heading">
+            <span class="eyebrow">خوش آمدید</span>
+            <h2>ورود به حساب سازمانی</h2>
+            <p>برای دریافت خدمات، شماره موبایل ثبت‌شده در سامانه منابع انسانی را وارد کنید.</p>
+          </div>
+          <form id="mobile-form" class="auth-form" novalidate>
+            <label for="mobile">شماره موبایل</label>
+            <div class="input-wrap"><span class="input-prefix" aria-hidden="true">+۹۸</span><input id="mobile" name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="13" dir="ltr" required></div>
+            <button id="request-otp-button" class="primary-button" type="submit"><span>دریافت کد تأیید</span><b aria-hidden="true">←</b></button>
           </form>
-        </div>
-
-        <div id="otp-panel" hidden>
-          <div class="section-heading">
-            <span class="step-number">۲</span>
-            <div>
-              <h2>تأیید شماره موبایل</h2>
-              <p>کد ارسال‌شده به <b id="otp-phone" dir="ltr"></b> را وارد کنید.</p>
-            </div>
+          <div class="auth-assurance"><span class="lock-icon" aria-hidden="true">⌑</span><span>ورود امن با رمز یک‌بارمصرف پیامکی</span></div>
+          <div id="otp-panel" class="otp-panel" hidden>
+            <div class="otp-heading"><span class="step-chip">مرحله ۲ از ۲</span><h3>کد تأیید را وارد کنید</h3><p>کد ارسال‌شده به <b id="otp-phone" dir="ltr"></b> را وارد کنید.</p></div>
+            <form id="otp-form" class="auth-form" novalidate>
+              <label for="otp-code">کد یک‌بارمصرف</label>
+              <input id="otp-code" class="otp-input" name="otp-code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="— — — — — —" maxlength="8" pattern="[0-9]{6,8}" dir="ltr" required>
+              <button id="verify-otp-button" class="primary-button" type="submit"><span>تأیید و ورود</span><b aria-hidden="true">←</b></button>
+            </form>
+            <div class="secondary-actions"><button id="resend-otp-button" class="text-button" type="button">ارسال مجدد کد</button><button id="back-to-mobile-button" class="text-button" type="button">تغییر شماره موبایل</button></div>
           </div>
-          <form id="otp-form" novalidate>
-            <label for="otp-code">کد تأیید</label>
-            <input id="otp-code" name="otp-code" type="text" inputmode="numeric" autocomplete="one-time-code"
-              placeholder="کد ۶ تا ۸ رقمی" maxlength="8" pattern="[0-9]{6,8}" dir="ltr" required>
-            <button id="verify-otp-button" class="primary-button" type="submit">تأیید و ورود</button>
-          </form>
-          <div class="secondary-actions">
-            <button id="resend-otp-button" class="text-button" type="button">درخواست مجدد کد</button>
-            <button id="back-to-mobile-button" class="text-button" type="button">تغییر شماره</button>
-          </div>
+          <p id="auth-status" class="auth-status" role="status" aria-live="polite" hidden></p>
+          <p class="auth-legal">با ورود به سامانه، استفاده از خدمات در چارچوب ضوابط فناوری اطلاعات گروه انتخاب انجام می‌شود.</p>
         </div>
-
-        <div id="signed-in-panel" hidden>
-          <div class="signed-in-mark" aria-hidden="true">✓</div>
-          <h2>ورود موفق</h2>
-          <p class="signed-in-copy">خوش آمدید، <strong id="signed-in-name">کاربر سازمانی</strong></p>
-          <p class="signed-in-copy">احراز هویت انجام شد. قابلیت‌های خدماتی در گام‌های بعدی به Gateway متصل می‌شوند.</p>
-          <button id="logout-button" class="secondary-button" type="button">خروج از حساب</button>
-        </div>
-
-        <p id="auth-status" class="auth-status" role="status" aria-live="polite" hidden></p>
       </section>
 
-      <section class="service-grid" aria-label="خدمات همیار انتخاب">
-        <article class="service-card">
-          <span class="service-icon" aria-hidden="true">✦</span>
-          <h3>گفتگوی هوشمند</h3>
-          <p>پاسخ به پرسش‌های فناوری اطلاعات</p>
-          <span class="coming-soon">در گام بعدی</span>
-        </article>
-        <article class="service-card">
-          <span class="service-icon" aria-hidden="true">＋</span>
-          <h3>ثبت درخواست</h3>
-          <p>ثبت و پیگیری درخواست پشتیبانی</p>
-          <span class="coming-soon">در گام بعدی</span>
-        </article>
-        <article class="service-card">
-          <span class="service-icon" aria-hidden="true">⌕</span>
-          <h3>پایگاه دانش</h3>
-          <p>دسترسی به راهنماهای سازمانی</p>
-          <span class="coming-soon">در گام بعدی</span>
-        </article>
-        <article class="service-card">
-          <span class="service-icon" aria-hidden="true">◎</span>
-          <h3>پروفایل من</h3>
-          <p>اطلاعات حساب و درخواست‌ها</p>
-          <span class="coming-soon">در گام بعدی</span>
-        </article>
-      </section>
+      <section id="signed-in-panel" class="workspace" aria-label="صفحه اصلی همیار انتخاب" hidden>
+        <aside class="sidebar">
+          <a class="sidebar-brand" href="#" aria-label="همیار انتخاب، صفحه اصلی"><span class="brand-mark">هـ</span><span><strong>همیار انتخاب</strong><small>IT SERVICE DESK</small></span></a>
+          <div class="side-caption">فضای کاری</div>
+          <nav class="side-nav" aria-label="منوی اصلی">
+            <a class="nav-link active" href="#home"><span class="nav-icon">⌂</span><span>نمای کلی</span></a>
+            <a class="nav-link" href="#services"><span class="nav-icon">✧</span><span>خدمات فناوری اطلاعات</span></a>
+            <a class="nav-link" href="#my-requests"><span class="nav-icon">▤</span><span>درخواست‌های من</span><i class="nav-soon">به‌زودی</i></a>
+            <a class="nav-link" href="#knowledge"><span class="nav-icon">▧</span><span>راهنما و دانش‌نامه</span><i class="nav-soon">به‌زودی</i></a>
+          </nav>
+          <div class="sidebar-bottom">
+            <div class="help-mini"><span class="help-mini-icon">؟</span><strong>به راهنمایی نیاز دارید؟</strong><p>تیم فناوری اطلاعات همراه شماست.</p></div>
+            <div class="sidebar-version">EN TEKHAB GROUP <span>•</span> V1.0</div>
+          </div>
+        </aside>
 
-      <footer id="runtime-note" class="runtime-note">در حال بررسی محیط اجرا…</footer>
+        <div class="workspace-main" id="home">
+          <header class="workspace-header">
+            <div class="breadcrumb"><span>همیار انتخاب</span><b>/</b><strong>نمای کلی</strong></div>
+            <div class="header-actions"><span class="secure-label"><i class="live-dot"></i> اتصال امن</span><div class="user-chip"><span class="avatar">هـ</span><span class="user-chip-text"><strong id="signed-in-name">کاربر سازمانی</strong><small>حساب سازمانی</small></span></div><button id="logout-button" class="logout-button" type="button" aria-label="خروج از حساب" title="خروج از حساب">↪</button></div>
+          </header>
+
+          <div class="workspace-content">
+            <section class="dashboard-hero">
+              <div class="hero-content"><span class="eyebrow">مرکز هوشمند خدمات فناوری اطلاعات</span><h1 id="dashboard-greeting">سلام، خوش آمدید</h1><p>برای شروع، خدمت موردنیازتان را انتخاب کنید. همیار انتخاب در مسیر حل مسائل فناوری اطلاعات کنار شماست.</p><a class="hero-cta" href="#services">مشاهده خدمات <b>←</b></a></div>
+              <div class="hero-art" aria-hidden="true"><div class="art-ring ring-a"></div><div class="art-ring ring-b"></div><div class="art-core">هـ<span></span></div><i class="art-node node-a"></i><i class="art-node node-b"></i><i class="art-node node-c"></i></div>
+              <div class="hero-glow"></div>
+            </section>
+
+            <section class="section-block" id="services">
+              <div class="section-title"><div><span class="eyebrow">دسترسی سریع</span><h2>چه کمکی از دست ما برمی‌آید؟</h2></div><span class="section-hint">خدمات پشتیبانی شما</span></div>
+              <div class="service-grid">
+                <article class="service-card service-ai"><div class="service-card-top"><span class="service-icon">✧</span><span class="service-state">در حال آماده‌سازی</span></div><h3>گفتگوی هوشمند</h3><p>پاسخ سریع به پرسش‌های فناوری اطلاعات با کمک دستیار هوشمند.</p><span class="card-arrow">←</span></article>
+                <article class="service-card service-ticket"><div class="service-card-top"><span class="service-icon">＋</span><span class="service-state">در حال آماده‌سازی</span></div><h3>ثبت درخواست پشتیبانی</h3><p>ثبت مشکل یا درخواست و پیگیری روند رسیدگی توسط کارشناسان.</p><span class="card-arrow">←</span></article>
+                <article class="service-card service-guide"><div class="service-card-top"><span class="service-icon">▤</span><span class="service-state">در حال آماده‌سازی</span></div><h3>راهنما و دانش‌نامه</h3><p>دسترسی به راهکارها، دستورالعمل‌ها و پاسخ پرسش‌های پرتکرار.</p><span class="card-arrow">←</span></article>
+                <article class="service-card service-profile"><div class="service-card-top"><span class="service-icon">◎</span><span class="service-state">در حال آماده‌سازی</span></div><h3>پروفایل و درخواست‌ها</h3><p>مشاهده اطلاعات حساب سازمانی و سوابق درخواست‌های ثبت‌شده.</p><span class="card-arrow">←</span></article>
+              </div>
+            </section>
+
+            <section class="bottom-grid">
+              <article class="info-panel" id="my-requests"><div class="panel-heading"><div><span class="eyebrow">پیگیری خدمات</span><h2>درخواست‌های اخیر</h2></div><span class="panel-symbol">▤</span></div><div class="empty-state"><span class="empty-icon">⌁</span><strong>هنوز درخواستی ثبت نشده است</strong><p>پس از فعال‌شدن بخش درخواست‌ها، وضعیت پیگیری‌ها در این قسمت نمایش داده می‌شود.</p></div></article>
+              <article class="support-panel" id="knowledge"><div class="support-orb">؟</div><span class="eyebrow">همراه شما هستیم</span><h2>پاسخ پرسش‌هایتان را پیدا کنید</h2><p>برای راهنمایی درباره خدمات فناوری اطلاعات، از مسیرهای پشتیبانی سازمان استفاده کنید.</p><span class="support-note">سامانه در حال توسعه و اتصال سرویس‌هاست.</span></article>
+            </section>
+            <footer class="workspace-footer"><span>همیار انتخاب · درگاه خدمات فناوری اطلاعات گروه انتخاب</span><span id="runtime-note">در حال بررسی محیط اجرا…</span></footer>
+          </div>
+        </div>
+        <nav class="mobile-nav" aria-label="دسترسی سریع موبایل"><a class="mobile-nav-item active" href="#home"><span>⌂</span>خانه</a><a class="mobile-nav-item" href="#services"><span>✧</span>خدمات</a><a class="mobile-nav-item" href="#my-requests"><span>▤</span>درخواست‌ها</a><a class="mobile-nav-item" href="#knowledge"><span>؟</span>راهنما</a></nav>
+      </section>
     </main>
   </body>
 </html>
