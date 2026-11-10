@@ -8,23 +8,21 @@ export class GatewayConfigurationError extends Error {
 }
 
 /**
- * Thin transport boundary. Authentication exchange and endpoint contracts
- * must be implemented only after matching the deployed Gateway contract.
+ * Generic Gateway transport boundary.
+ * Eitaa initData exchange is intentionally NOT implemented here: it must use
+ * a dedicated, verified Gateway endpoint and server-side validation contract.
  */
 export async function gatewayRequest<T>(
   path: string,
-  initData: string,
   init?: RequestInit,
 ): Promise<T> {
   if (!gatewayBaseUrl) throw new GatewayConfigurationError();
-  if (!path.startsWith("/")) throw new Error("Gateway path must be absolute.");
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    throw new Error("Gateway path must be an absolute same-origin path.");
+  }
 
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
-
-  // Raw Eitaa initData is forwarded only to the server-side verification
-  // endpoint once that endpoint is explicitly agreed and implemented.
-  if (initData) headers.set("X-Eitaa-Init-Data", initData);
 
   const response = await fetch(`${gatewayBaseUrl}${path}`, {
     ...init,
