@@ -172,6 +172,13 @@ resendButton.addEventListener("click", () => {
 backButton.addEventListener("click", returnToMobile);
 logoutButton.addEventListener("click", logout);
 
+window.addEventListener("auth:expired", () => {
+  pendingRequestId = null;
+  pendingMobile = null;
+  showPanel("login");
+  showStatus("اعتبار نشست به پایان رسیده است؛ دوباره وارد شوید.", "warning");
+});
+
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && !getAuthSession() && !signedInPanel.hidden) {
     clearAuthSession();
