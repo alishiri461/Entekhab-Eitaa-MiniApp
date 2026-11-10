@@ -78,6 +78,8 @@ export async function verifyMobileOtp(requestId, code) {
 
 export function getAuthSession() {
   if (!currentSession || currentSession.expiresAt <= Date.now()) {
+    if (expiryTimer !== null) window.clearTimeout(expiryTimer);
+    expiryTimer = null;
     currentSession = null;
     return null;
   }
