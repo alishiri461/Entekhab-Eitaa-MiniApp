@@ -36,3 +36,124 @@ button,input{font:inherit}button,a{-webkit-tap-highlight-color:transparent}butto
 .workspace{display:block;padding-bottom:72px}.sidebar{display:none}.workspace-header{min-height:64px;padding:0 17px}.header-actions{gap:10px}.secure-label{display:none}.user-chip-text small{display:none}.user-chip-text strong{max-width:110px}.workspace-content{padding:18px 15px 20px}.dashboard-hero{min-height:210px;padding:24px 22px}.dashboard-hero p{max-width:390px;font-size:11px}.hero-art{flex-basis:135px;height:150px;margin-left:-28px;opacity:.72}.ring-a{width:130px;height:130px}.ring-b{width:98px;height:98px}.art-core{width:65px;height:65px;border-radius:20px;font-size:32px}.node-a{left:4px;top:38px}.node-b{right:1px;top:70px}.node-c{left:42px;bottom:0}.section-block{margin-top:27px}.section-title h2{font-size:15px}.section-hint{display:none}.service-grid{gap:10px}.service-card{min-height:170px;padding:14px}.service-card h3{font-size:12px}.service-card p{font-size:9px}.service-state{font-size:7px}.bottom-grid{grid-template-columns:1fr;gap:11px;margin-top:13px}.info-panel,.support-panel{min-height:195px;padding:17px}.workspace-footer{flex-direction:column;font-size:8px}.mobile-nav{position:fixed;z-index:10;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 8px max(8px,env(safe-area-inset-bottom));border-top:1px solid #2a3d56;background:#0d1929ed;backdrop-filter:blur(18px)}.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;color:#8296b1;font-size:9px}.mobile-nav-item span{font-size:19px}.mobile-nav-item.active{color:#a9ceff}}
 @media(max-width:390px){.auth-content{padding:28px 20px 22px}.dashboard-hero{padding:20px 17px}.dashboard-hero h1{font-size:22px}.hero-art{flex-basis:105px;margin-left:-42px;opacity:.55}.service-card{padding:12px}.service-card-top{align-items:flex-start;flex-direction:column;margin-bottom:12px}.service-card{min-height:180px}.service-state{font-size:7px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+
+/* ---------------------------------------------------------
+   Persian-first responsive refinement
+   Vazirmatn is self-declared by the official font stylesheet
+   linked in index.html; local system fonts remain fallbacks.
+---------------------------------------------------------- */
+:root{
+  font-family:"Vazirmatn",Tahoma,sans-serif;
+  font-synthesis:none;
+  text-size-adjust:100%;
+  -webkit-text-size-adjust:100%;
+}
+html,body{width:100%;max-width:100%;min-width:320px}
+body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
+button,input,a{-webkit-tap-highlight-color:transparent}
+button,a,input{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible{
+  outline:2px solid #79b5ff;
+  outline-offset:3px;
+}
+input,button{font-family:inherit}
+.auth-screen{min-height:min(700px,calc(100dvh - 64px))}
+.workspace{min-height:100vh;min-height:100dvh}
+.workspace-content{min-width:0}
+.service-card,.info-panel,.support-panel,.dashboard-hero{min-width:0}
+.service-card h3,.service-card p,.support-panel h2,.support-panel p,
+.auth-heading p,.auth-legal,.dashboard-hero p{overflow-wrap:anywhere}
+.mobile-nav{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+@media(max-width:760px){
+  html{scroll-padding-top:76px}
+  .auth-screen{
+    width:min(100% - 24px,480px);
+    min-height:calc(100dvh - 24px);
+    margin:12px auto;
+    border-radius:20px;
+  }
+  .auth-content{
+    justify-content:flex-start;
+    padding:clamp(24px,7vh,44px) clamp(18px,6vw,28px) 22px;
+  }
+  .auth-mobile-brand{margin-bottom:clamp(24px,6vh,38px)}
+  .auth-heading{margin-bottom:26px}
+  .auth-form input{font-size:16px}
+  .primary-button,.input-wrap{min-height:54px}
+  .primary-button{min-height:54px}
+  .dashboard-hero{
+    min-height:218px;
+    align-items:center;
+    padding:24px 20px;
+  }
+  .hero-content{max-width:100%;width:100%}
+  .hero-art{
+    position:absolute;
+    left:-12px;
+    top:50%;
+    width:145px;
+    height:145px;
+    margin:0;
+    opacity:.18;
+    transform:translateY(-50%);
+    pointer-events:none;
+  }
+  .dashboard-hero .eyebrow,.dashboard-hero h1,.dashboard-hero p,.hero-cta{
+    position:relative;
+    z-index:2;
+  }
+  .dashboard-hero p{max-width:100%;padding-left:12px}
+  .hero-cta{min-height:42px}
+  .workspace-header{gap:8px}
+  .breadcrumb{min-width:0;gap:6px;font-size:9px}
+  .header-actions{flex:0 0 auto}
+  .workspace-content{padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+  .mobile-nav-item{min-height:44px;justify-content:center}
+}
+@media(max-width:560px){
+  .workspace-header{min-height:60px;padding-inline:13px}
+  .breadcrumb span{display:none}
+  .breadcrumb b{display:none}
+  .user-chip{gap:7px}
+  .avatar{width:33px;height:33px}
+  .user-chip-text strong{max-width:92px;font-size:9px}
+  .logout-button{width:33px;height:33px}
+  .workspace-content{padding-inline:13px}
+  .section-title{align-items:flex-start}
+  .section-title h2{font-size:14px;line-height:1.8}
+  .service-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .service-card{min-height:174px;padding:12px}
+  .service-card-top{align-items:flex-start;flex-wrap:wrap;row-gap:8px}
+  .service-card h3{font-size:11px;line-height:1.8}
+  .service-card p{font-size:9px;line-height:1.9}
+  .service-state{white-space:normal;line-height:1.6}
+  .bottom-grid{grid-template-columns:minmax(0,1fr)}
+  .workspace-footer{padding-bottom:8px;line-height:1.8}
+}
+@media(max-width:380px){
+  .auth-screen{width:calc(100% - 20px);margin:10px auto}
+  .auth-content{padding-inline:17px}
+  .auth-heading h2{font-size:20px}
+  .auth-legal{font-size:9px}
+  .workspace-header{padding-inline:10px}
+  .workspace-content{padding-inline:10px}
+  .dashboard-hero{min-height:225px;padding:20px 15px}
+  .dashboard-hero h1{font-size:21px}
+  .dashboard-hero p{font-size:10px;line-height:2}
+  .service-grid{grid-template-columns:minmax(0,1fr)}
+  .service-card{min-height:142px;padding:14px}
+  .service-card-top{align-items:center;flex-direction:row;margin-bottom:12px}
+  .service-card p{max-width:320px}
+  .mobile-nav{padding-inline:5px}
+  .mobile-nav-item{font-size:8px}
+}
+@media(max-height:620px) and (max-width:760px){
+  .auth-content{padding-top:18px}
+  .auth-mobile-brand{margin-bottom:18px}
+  .auth-heading{margin-bottom:18px}
+  .auth-legal{margin-top:18px;padding-top:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
