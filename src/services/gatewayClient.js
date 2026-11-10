@@ -1,8 +1,8 @@
-const gatewayBaseUrl = window.APP_CONFIG?.gatewayBaseUrl?.replace(/\/$/, "");
+const configuredGatewayUrl = window.APP_CONFIG?.gatewayBaseUrl?.trim();
 
 export class GatewayConfigurationError extends Error {
-  constructor() {
-    super("Gateway base URL is not configured.");
+  constructor(message = "Gateway base URL is not configured or is not secure.") {
+    super(message);
     this.name = "GatewayConfigurationError";
   }
 }
@@ -16,16 +16,37 @@ export class GatewayRequestError extends Error {
   }
 }
 
+function getGatewayBaseUrl() {
+  if (!configuredGatewayUrl) throw new GatewayConfigurationError();
+
+  let parsed;
+  try {
+    parsed = new URL(configuredGatewayUrl);
+  } catch {
+    throw new GatewayConfigurationError("Gateway URL format is invalid.");
+  }
+
+  const isLocalDevelopmentHost = ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname);
+  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && isLocalDevelopmentHost)) {
+    throw new GatewayConfigurationError("Gateway must use HTTPS outside localhost development.");
+  }
+  if (parsed.username || parsed.password || parsed.search || parsed.hash) {
+    throw new GatewayConfigurationError("Gateway URL must not contain credentials, query, or fragment.");
+  }
+
+  return `${parsed.origin}${parsed.pathname.replace(/\/$/, "")}`;
+}
+
 export async function gatewayRequest(path, init = {}) {
-  if (!gatewayBaseUrl) throw new GatewayConfigurationError();
-  if (!path.startsWith("/") || path.startsWith("//")) {
+  const baseUrl = getGatewayBaseUrl();
+  if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) {
     throw new Error("Gateway path must be an absolute path.");
   }
 
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
 
-  const response = await fetch(`${gatewayBaseUrl}${path}`, {
+  const response = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers,
     credentials: "omit",
