@@ -20,6 +20,7 @@ const resendButton = document.querySelector("#resend-otp-button");
 const backButton = document.querySelector("#back-to-mobile-button");
 const logoutButton = document.querySelector("#logout-button");
 const signedInName = document.querySelector("#signed-in-name");
+const dashboardGreeting = document.querySelector("#dashboard-greeting");
 
 let pendingRequestId = null;
 let pendingMobile = null;
@@ -38,9 +39,11 @@ function showStatus(message, kind = "info") {
 }
 
 function setBusy(button, busy, busyText) {
-  if (!button.dataset.idleText) button.dataset.idleText = button.textContent;
+  if (!button.dataset.idleText) button.dataset.idleText = button.querySelector("span")?.textContent ?? button.textContent;
   button.disabled = busy;
-  button.textContent = busy ? busyText : button.dataset.idleText;
+  const label = button.querySelector("span");
+  if (label) label.textContent = busy ? busyText : button.dataset.idleText;
+  else button.textContent = busy ? busyText : button.dataset.idleText;
 }
 
 function showPanel(panel) {
@@ -54,9 +57,7 @@ function formatMobile(mobile) {
 }
 
 function friendlyError(error) {
-  if (error?.name === "GatewayConfigurationError") {
-    return "آدرس Gateway هنوز در تنظیمات برنامک ثبت نشده است.";
-  }
+  if (error?.name === "GatewayConfigurationError") return "آدرس Gateway هنوز در تنظیمات برنامک ثبت نشده است.";
   if (error?.name === "GatewayRequestError") {
     const code = error.details?.code;
     const known = {
@@ -72,10 +73,22 @@ function friendlyError(error) {
   return error instanceof Error ? error.message : "خطای پیش‌بینی‌نشده‌ای رخ داد.";
 }
 
+function getDisplayName(user) {
+  return [user?.display_name, user?.name, user?.username, user?.id]
+    .find(value => typeof value === "string" && value.trim()) || "کاربر سازمانی";
+}
+
+function enterWorkspace(user) {
+  const name = getDisplayName(user);
+  signedInName.textContent = name;
+  dashboardGreeting.textContent = `سلام ${name}، خوش آمدید`;
+  showPanel("signed-in");
+  showStatus("");
+}
+
 async function submitMobile(event) {
   event.preventDefault();
   const mobile = toAsciiDigits(mobileInput.value).replace(/[\s-]/g, "");
-
   if (!/^09\d{9}$/.test(mobile)) {
     showStatus("شماره موبایل را با قالب ۰۹xxxxxxxxx وارد کنید.", "error");
     mobileInput.focus();
@@ -87,20 +100,15 @@ async function submitMobile(event) {
   try {
     const result = await requestMobileOtp(mobile);
     const requestId = typeof result?.request_id === "string" ? result.request_id.trim() : "";
-
     if (!requestId) {
-      showStatus(
-        "درخواست دریافت شد. در صورت واجد شرایط بودن شماره، پیامک ارسال می‌شود؛ اما Gateway شناسه لازم برای مرحله تأیید را در پاسخ ارائه نکرده است. برای ادامه با پشتیبانی تماس بگیرید.",
-        "warning",
-      );
+      showStatus("درخواست دریافت شد؛ اما Gateway شناسه لازم برای مرحله تأیید را در پاسخ ارائه نکرد. تا زمان اصلاح قرارداد پاسخ، امکان ادامه ورود وجود ندارد.", "warning");
       return;
     }
-
     pendingRequestId = requestId;
     pendingMobile = mobile;
     phoneLabel.textContent = formatMobile(mobile);
     otpInput.value = "";
-    showPanel("otp");
+    otpPanel.hidden = false;
     showStatus("کد تأیید ارسال شد. کد پیامک‌شده را وارد کنید.", "success");
     otpInput.focus();
   } catch (error) {
@@ -113,11 +121,9 @@ async function submitMobile(event) {
 async function submitOtp(event) {
   event.preventDefault();
   if (!pendingRequestId) {
-    showPanel("login");
     showStatus("شناسه درخواست تأیید موجود نیست؛ دوباره درخواست کد کنید.", "error");
     return;
   }
-
   const code = toAsciiDigits(otpInput.value).trim();
   if (!/^\d{6,8}$/.test(code)) {
     showStatus("کد تأیید باید بین ۶ تا ۸ رقم باشد.", "error");
@@ -130,13 +136,7 @@ async function submitOtp(event) {
   try {
     await verifyMobileOtp(pendingRequestId, code);
     pendingRequestId = null;
-    const session = getAuthSession();
-    const user = session?.user ?? {};
-    const displayName = [user.display_name, user.name, user.username, user.id]
-      .find(value => typeof value === "string" && value.trim());
-    signedInName.textContent = displayName || "کاربر سازمانی";
-    showPanel("signed-in");
-    showStatus("ورود با موفقیت انجام شد. نشست فقط تا زمان اعتبار توکن در حافظه مرورگر نگهداری می‌شود.", "success");
+    enterWorkspace(getAuthSession()?.user ?? {});
   } catch (error) {
     showStatus(friendlyError(error), "error");
   } finally {
@@ -148,7 +148,7 @@ function returnToMobile() {
   pendingRequestId = null;
   pendingMobile = null;
   otpInput.value = "";
-  showPanel("login");
+  otpPanel.hidden = true;
   showStatus("");
   mobileInput.focus();
 }
@@ -158,6 +158,8 @@ function logout() {
   pendingRequestId = null;
   pendingMobile = null;
   otpInput.value = "";
+  otpPanel.hidden = true;
+  mobileForm.reset();
   showPanel("login");
   showStatus("از حساب کاربری خارج شدید.", "info");
 }
@@ -187,11 +189,5 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-if (getAuthSession()) {
-  const session = getAuthSession();
-  const user = session.user ?? {};
-  signedInName.textContent = user.display_name || user.username || "کاربر سازمانی";
-  showPanel("signed-in");
-} else {
-  showPanel("login");
-}
+if (getAuthSession()) enterWorkspace(getAuthSession().user ?? {});
+else showPanel("login");
