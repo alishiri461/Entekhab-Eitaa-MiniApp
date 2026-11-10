@@ -14,23 +14,25 @@
 ```mermaid
 flowchart TD
   E[Eitaa Android / Desktop] --> W[Eitaa WebView]
-  W --> UI[React + TypeScript Mini App]
-  UI -->|OTP request / verify over HTTPS| GW[Entekhab API Gateway]
+  W --> UI[HTML + CSS + Vanilla JavaScript]
+  UI -->|OTP / API over HTTPS| GW[Entekhab API Gateway]
   GW --> ID[AD Manager / Identity]
-  GW -->|Validated user access token| AS[Assistant]
-  GW -->|Validated user access token| TK[Ticket Manager]
-  GW -->|Signed user identity| RAG[Persian RAG]
-  UI -.->|Eitaa initData: not currently exchanged| FUTURE[Future server-side Eitaa identity validation]
+  GW --> AS[Assistant]
+  GW --> TK[Ticket Manager]
+  GW --> RAG[Persian RAG]
+  UI -.->|initData: no exchange endpoint yet| FUTURE[Future server-side Eitaa validation]
 ```
 
-## لایه‌های Frontend
+## ساختار Frontend
 
-- **app**: bootstrap، composition و route shell.
-- **features**: قابلیت‌های مستقل assistant، tickets، knowledge و profile.
-- **components**: اجزای UI مشترک و بدون منطق دامنه.
-- **services**: transport و adapterهای ارتباط با Gateway.
-- **eitaa**: bridge محدود به SDK رسمی Eitaa.
-- **styles**: design tokens، RTL و responsive rules.
+- `index.html`: ساختار معنایی صفحه و بارگذاری SDK.
+- `src/styles/`: طراحی بصری، RTL و responsive rules.
+- `src/app.js`: bootstrap و رفتارهای رابط کاربری.
+- `src/config.js`: تنظیمات عمومی مرورگر؛ فقط مقادیر غیرمحرمانه.
+- `src/eitaa/`: bridge محدود به SDK رسمی Eitaa.
+- `src/services/`: transport و adapterهای ارتباط با Gateway.
+
+از JavaScript ماژولار بومی مرورگر (ES Modules) استفاده می‌شود. هیچ framework، transpiler، bundler یا مرحله build وجود ندارد. منطق UI از transport و قراردادهای Backend جدا می‌ماند.
 
 ## مرز Backend
 
@@ -54,9 +56,8 @@ Gateway در حال حاضر مسیرهای OTP سازمانی، چت، پروف
 
 ## تصمیمات فنی
 
-- React + TypeScript + Vite برای کلاینت.
-- Modular frontend با feature boundaries؛ نه micro-frontend.
+- HTML5 + CSS3 + Vanilla JavaScript (ES Modules).
+- بدون React، Vue، Angular، TypeScript، JSX، Vite، bundler یا کتابخانه UI.
 - SDK رسمی از CDN ایتا بارگذاری می‌شود؛ فایل SDK در مخزن vendoring نمی‌شود.
 - Browser preview صرفاً برای توسعه UI است و نباید نقش شبیه‌ساز احراز هویت داشته باشد.
-- وابستگی‌ها حداقلی نگه داشته می‌شوند تا bundle و سطح حمله محدود بماند.
 - CORS و allowlist کلاینت باید در محیط Gateway برای دامنه HTTPS واقعی و شناسه اختصاصی Eitaa تنظیم شوند؛ این تغییرات در این مخزن یا Gateway اعمال نشده‌اند.
