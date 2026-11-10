@@ -108,7 +108,7 @@ async function submitMobile(event) {
     pendingMobile = mobile;
     phoneLabel.textContent = formatMobile(mobile);
     otpInput.value = "";
-    otpPanel.hidden = false;
+    showPanel("otp");
     showStatus("کد تأیید ارسال شد. کد پیامک‌شده را وارد کنید.", "success");
     otpInput.focus();
   } catch (error) {
@@ -148,7 +148,7 @@ function returnToMobile() {
   pendingRequestId = null;
   pendingMobile = null;
   otpInput.value = "";
-  otpPanel.hidden = true;
+  showPanel("login");
   showStatus("");
   mobileInput.focus();
 }
