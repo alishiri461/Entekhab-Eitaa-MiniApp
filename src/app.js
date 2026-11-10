@@ -3,7 +3,7 @@ import "./features/authView.js";
 
 const runtime = getEitaaRuntime();
 const runtimeNote = document.querySelector("#runtime-note");
-const greeting = document.querySelector("#welcome-title");
+const greeting = document.querySelector("#dashboard-greeting");
 
 if (runtime.available) {
   runtimeNote.textContent = `محیط ایتا شناسایی شد · ${runtime.platform || "platform نامشخص"}`;
