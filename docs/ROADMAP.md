@@ -1,6 +1,6 @@
 # نقشه راه و معیارهای پذیرش
 
-## Phase 0 — Foundation (فعلی)
+## Phase 0 — Foundation
 
 - [x] مخزن مستقل و Branch مستقل
 - [x] پایه HTML5 / CSS3 / Vanilla JavaScript
@@ -8,21 +8,23 @@
 - [x] بارگذاری SDK رسمی Eitaa
 - [x] مرزبندی Eitaa bridge و Gateway transport
 - [x] مستندات معماری، API و امنیت
-- [ ] تطبیق قراردادهای Gateway با کد/OpenAPI جاری
-- [ ] بازبینی امنیتی جریان احراز هویت
+- [x] رابط ورود OTP متصل به سرویس‌های canonical Gateway
+- [x] نگهداری request_id و User Access Token فقط در حافظه
 - [ ] اجرای smoke test در static HTTP server و مرورگر
+- [ ] تطبیق قراردادهای Gateway با کد/OpenAPI جاری و محیط مستقر
 
 ## Phase 1 — Shell و تجربه کاربری
 
-- [ ] تکمیل طراحی responsive و دسترس‌پذیر
-- [ ] navigation و state management سبک با JavaScript بومی
-- [ ] خطا، loading، empty و offline states
+- [x] صفحه ورود فارسی RTL با حالت‌های موبایل، OTP و ورود موفق
+- [x] وضعیت loading، validation و خطا برای جریان OTP
+- [ ] تکمیل navigation و state management سبک با JavaScript بومی
 - [ ] تست در Eitaa Android و Desktop
 - [ ] تنظیم رنگ‌ها و رفتار safe area با SDK
 
 ## Phase 2 — Gateway Authentication
 
-- [ ] اتصال UI به OTP موبایل از طریق Gateway
+- [x] اتصال UI به OTP موبایل از طریق Gateway
+- [x] عدم اجرای verify در صورت نبود request_id
 - [ ] پیاده‌سازی server-side initData validation در Gateway، پس از تعریف قرارداد
 - [ ] نگاشت identity با سیاست سازمانی مصوب
 - [ ] تست replay، expiry، tampering و authorization
@@ -43,7 +45,7 @@
 - [ ] پایش خطا، latency و نرخ موفقیت
 - [ ] مستندات پشتیبانی و rollback
 
-## معیارهای خروج Phase 0
+## معیارهای خروج
 
 - پروژه بدون نصب dependency و بدون مرحله build از یک static HTTP server اجرا شود.
 - هیچ React، TypeScript، JSX، Vite یا فایل پیکربندی build در پروژه وجود نداشته باشد.
