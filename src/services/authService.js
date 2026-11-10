@@ -1,6 +1,7 @@
 import { gatewayRequest } from "./gatewayClient.js";
 
 let currentSession = null;
+let expiryTimer = null;
 
 function createIdempotencyKey() {
   if (!globalThis.crypto?.getRandomValues) {
@@ -61,11 +62,17 @@ export async function verifyMobileOtp(requestId, code) {
     throw new Error("پاسخ احراز هویت Gateway معتبر نیست.");
   }
 
+  if (expiryTimer !== null) window.clearTimeout(expiryTimer);
   currentSession = {
     accessToken: result.access_token,
     user: result.user,
     expiresAt: Date.now() + result.expires_in * 1000,
   };
+  expiryTimer = window.setTimeout(() => {
+    currentSession = null;
+    expiryTimer = null;
+    window.dispatchEvent(new Event("auth:expired"));
+  }, result.expires_in * 1000);
   return getAuthSession();
 }
 
@@ -82,5 +89,7 @@ export function getUserAccessToken() {
 }
 
 export function clearAuthSession() {
+  if (expiryTimer !== null) window.clearTimeout(expiryTimer);
+  expiryTimer = null;
   currentSession = null;
 }
