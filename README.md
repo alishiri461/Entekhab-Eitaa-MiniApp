@@ -10,6 +10,7 @@
 - CSS3
 - JavaScript خالص با ES Modules
 - SDK رسمی ایتا از CDN
+- فونت فارسی Vazirmatn (نسخه متغیر، وزن‌های 100 تا 900) از CDN رسمی پروژه فونت
 
 React، Vue، Angular، TypeScript، JSX، Vite، bundler و کتابخانه UI در پروژه استفاده نمی‌شوند.
 
