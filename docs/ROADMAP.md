@@ -3,33 +3,35 @@
 ## Phase 0 — Foundation (فعلی)
 
 - [x] مخزن مستقل و Branch مستقل
-- [x] پایه React/TypeScript/Vite
+- [x] پایه HTML5 / CSS3 / Vanilla JavaScript
+- [x] حذف React، TypeScript، JSX، Vite و وابستگی‌های Build
 - [x] بارگذاری SDK رسمی Eitaa
-- [x] مرزبندی اولیه Eitaa bridge و Gateway transport
+- [x] مرزبندی Eitaa bridge و Gateway transport
 - [x] مستندات معماری، API و امنیت
-- [ ] تطبیق قراردادهای Gateway با کد/OpenAPI واقعی
+- [ ] تطبیق قراردادهای Gateway با کد/OpenAPI جاری
 - [ ] بازبینی امنیتی جریان احراز هویت
+- [ ] اجرای smoke test در static HTTP server و مرورگر
 
 ## Phase 1 — Shell و تجربه کاربری
 
 - [ ] تکمیل طراحی responsive و دسترس‌پذیر
-- [ ] navigation و state management سبک
+- [ ] navigation و state management سبک با JavaScript بومی
 - [ ] خطا، loading، empty و offline states
 - [ ] تست در Eitaa Android و Desktop
 - [ ] تنظیم رنگ‌ها و رفتار safe area با SDK
 
 ## Phase 2 — Gateway Authentication
 
-- [ ] پیاده‌سازی server-side initData validation
+- [ ] اتصال UI به OTP موبایل از طریق Gateway
+- [ ] پیاده‌سازی server-side initData validation در Gateway، پس از تعریف قرارداد
 - [ ] نگاشت identity با سیاست سازمانی مصوب
-- [ ] صدور نشست امن از Gateway
 - [ ] تست replay، expiry، tampering و authorization
 
 ## Phase 3 — Services
 
 - [ ] Chat با قرارداد واقعی `/api/v1/chat`
 - [ ] ثبت و پیگیری Ticket از Gateway
-- [ ] جستجوی Knowledge از Gateway
+- [ ] نمایش guideهای موجود از Gateway؛ جستجوی آزاد فقط پس از ارائه route واقعی
 - [ ] Profile و مجوزهای سازمانی
 
 ## Phase 4 — Release
@@ -37,13 +39,14 @@
 - [ ] تست پذیرش سازمانی و امنیتی
 - [ ] دامنه HTTPS بدون redirect برای URL ثبت‌شده
 - [ ] ثبت در EitaaYar و تنظیم مقصد
+- [ ] تنظیم CORS و allowlist کلاینت در Gateway
 - [ ] پایش خطا، latency و نرخ موفقیت
 - [ ] مستندات پشتیبانی و rollback
 
 ## معیارهای خروج Phase 0
 
-- پروژه با npm install قابل نصب باشد.
-- typecheck و production build موفق باشند.
+- پروژه بدون نصب dependency و بدون مرحله build از یک static HTTP server اجرا شود.
+- هیچ React، TypeScript، JSX، Vite یا فایل پیکربندی build در پروژه وجود نداشته باشد.
 - هیچ secret یا token در Frontend وجود نداشته باشد.
 - تمام درخواست‌های Backend فقط از Gateway عبور کنند.
 - هیچ ادعای اتصال واقعی یا احراز هویت معتبر بدون تست محیط Eitaa/Gateway مطرح نشود.
