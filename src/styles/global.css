@@ -248,3 +248,9 @@ input,button{font-family:inherit}
 @media(max-width:650px){.page-heading{align-items:flex-start;flex-direction:column;margin-bottom:20px}.page-heading .ui-status{align-self:flex-start}.ticket-layout,.profile-layout{grid-template-columns:1fr}.ticket-help{order:2}.surface-form{padding:17px}.form-two-col{grid-template-columns:1fr}.knowledge-grid{grid-template-columns:1fr}.knowledge-card{min-height:175px}.chat-panel{min-height:calc(100dvh - 220px)}.chat-stream{min-height:260px;padding:15px}.chat-message{max-width:95%}.chat-panel-head{padding:14px}.chat-composer{margin:0 9px 10px}.profile-details{padding:17px}.profile-fields{grid-template-columns:1fr 1fr}}
 @media(max-width:380px){.profile-fields{grid-template-columns:1fr}.chat-online{display:none}.service-card-action{min-height:165px}}
 @media(prefers-reduced-motion:reduce){.page-view{animation:none}}
+
+
+.auth-method-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:-14px 0 20px;padding:5px;border:1px solid #293d57;border-radius:13px;background:#091524}
+.auth-method-switch button{min-height:42px;padding:8px 12px;border:1px solid transparent;border-radius:9px;color:#8fa4c0;background:transparent;font-size:11px;font-weight:700;transition:background .18s,border-color .18s,color .18s}
+.auth-method-switch button:hover{color:#d9e8fb;background:#14243a}
+.auth-method-switch button.active{border-color:#3268a7;color:#e7f1ff;background:linear-gradient(110deg,#1a5eb3,#123f79);box-shadow:0 4px 14px #06101e66}
