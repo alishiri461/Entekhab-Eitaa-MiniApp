@@ -84,6 +84,7 @@ function enterWorkspace(user) {
   dashboardGreeting.textContent = `سلام ${name}، خوش آمدید`;
   showPanel("signed-in");
   showStatus("");
+  window.dispatchEvent(new Event("auth:ready"));
 }
 
 async function submitMobile(event) {
