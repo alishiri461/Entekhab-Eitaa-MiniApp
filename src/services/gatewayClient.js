@@ -45,6 +45,9 @@ export async function gatewayRequest(path, init = {}) {
 
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
+  headers.set("X-Client-ID", window.APP_CONFIG?.clientId || "enterprise-support-eitaa");
+  headers.set("X-Client-Version", window.APP_CONFIG?.clientVersion || "1.0.0");
+  headers.set("X-Contract-Version", window.APP_CONFIG?.contractVersion || "1");
 
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
