@@ -1,4 +1,5 @@
 import { gatewayRequest } from "./gatewayClient.js";
+import { getEitaaRuntime } from "../eitaa/eitaaBridge.js";
 
 let currentSession = null;
 let expiryTimer = null;
@@ -9,6 +10,14 @@ function createIdempotencyKey() {
   }
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+}
+
+function getEitaaInitDataHeader() {
+  const runtime = getEitaaRuntime();
+  if (!runtime.available || !runtime.initData) {
+    throw new Error("احراز هویت فقط داخل برنامک معتبر ایتا امکان‌پذیر است.");
+  }
+  return { "X-Eitaa-Init-Data": runtime.initData };
 }
 
 export async function requestMobileOtp(mobile) {
@@ -22,8 +31,26 @@ export async function requestMobileOtp(mobile) {
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": createIdempotencyKey(),
+      ...getEitaaInitDataHeader(),
     },
     body: JSON.stringify({ mobile: normalizedMobile, channel: "sms" }),
+  });
+}
+
+export async function requestEmployeeOtp(employeeId) {
+  const normalizedEmployeeId = String(employeeId ?? "").trim();
+  if (!normalizedEmployeeId || normalizedEmployeeId.length > 64) {
+    throw new Error("کد پرسنلی معتبر نیست.");
+  }
+
+  return gatewayRequest("/api/v1/identity/otp/request", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": createIdempotencyKey(),
+      ...getEitaaInitDataHeader(),
+    },
+    body: JSON.stringify({ employee_id: normalizedEmployeeId, channel: "sms" }),
   });
 }
 
@@ -43,12 +70,11 @@ export async function verifyMobileOtp(requestId, code) {
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": createIdempotencyKey(),
+      ...getEitaaInitDataHeader(),
     },
     body: JSON.stringify({ request_id: normalizedRequestId, code: normalizedCode }),
   });
 
-  // Gateway's user model has optional identity fields. Validate only the
-  // fields guaranteed by the token response contract.
   if (
     typeof result?.access_token !== "string" ||
     !result.access_token ||

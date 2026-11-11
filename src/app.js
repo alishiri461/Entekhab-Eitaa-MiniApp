@@ -1,5 +1,6 @@
 import { getEitaaRuntime, notifyEitaaReady } from "./eitaa/eitaaBridge.js";
 import "./features/authView.js";
+import "./features/workspaceView.js";
 
 const runtime = getEitaaRuntime();
 const runtimeNote = document.querySelector("#runtime-note");
@@ -11,5 +12,12 @@ if (runtime.available) {
 } else {
   runtimeNote.textContent = "پیش‌نمایش مرورگر · هویت ایتا در این محیط در دسترس نیست";
 }
+
+window.addEventListener("auth:ready", () => {
+  const note = document.querySelector("#runtime-note");
+  if (note) note.textContent = runtime.available
+    ? `محیط ایتا شناسایی شد · ${runtime.platform || "platform نامشخص"}`
+    : "پیش‌نمایش مرورگر · هویت ایتا در این محیط در دسترس نیست";
+});
 
 notifyEitaaReady();

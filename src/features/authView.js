@@ -2,6 +2,7 @@ import {
   clearAuthSession,
   getAuthSession,
   requestMobileOtp,
+  requestEmployeeOtp,
   verifyMobileOtp,
 } from "../services/authService.js";
 
@@ -21,9 +22,18 @@ const backButton = document.querySelector("#back-to-mobile-button");
 const logoutButton = document.querySelector("#logout-button");
 const signedInName = document.querySelector("#signed-in-name");
 const dashboardGreeting = document.querySelector("#dashboard-greeting");
+const methodButtons = [...document.querySelectorAll("[data-auth-method]")];
+const identifierLabel = document.querySelector("#identifier-label");
+const inputPrefix = document.querySelector("#input-prefix");
 
+let authMethod = "mobile";
 let pendingRequestId = null;
-let pendingMobile = null;
+let pendingIdentifier = null;
+let pendingMethod = null;
+let requestInFlight = false;
+let verifyInFlight = false;
+let resendInterval = null;
+let resendSeconds = 0;
 
 function toAsciiDigits(value) {
   return String(value).replace(/[۰-۹٠-٩]/g, digit => {
@@ -65,6 +75,10 @@ function friendlyError(error) {
       OTP_INVALID: "کد واردشده معتبر نیست.",
       OTP_EXPIRED: "مهلت کد تأیید به پایان رسیده است. کد جدید درخواست کنید.",
       UNAUTHORIZED: "درخواست مجاز نیست. دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.",
+      EITAA_INIT_DATA_INVALID: "نشست ایتا معتبر نیست یا منقضی شده است. برنامک را دوباره باز کنید.",
+      GATEWAY_TIMEOUT: "پاسخی از درگاه دریافت نشد. اتصال را بررسی کنید و دوباره تلاش کنید.",
+      GATEWAY_NETWORK_ERROR: "ارتباط با درگاه برقرار نشد. اتصال اینترنت را بررسی کنید.",
+      OTP_INVALID_OR_EXPIRED: "کد یا درخواست تأیید معتبر نیست یا مهلت آن به پایان رسیده است. کد جدید درخواست کنید.",
     };
     if (known[code]) return known[code];
     if (error.status >= 500) return "سرویس احراز هویت موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.";
@@ -84,29 +98,89 @@ function enterWorkspace(user) {
   dashboardGreeting.textContent = `سلام ${name}، خوش آمدید`;
   showPanel("signed-in");
   showStatus("");
+  window.dispatchEvent(new Event("auth:ready"));
 }
 
-async function submitMobile(event) {
+function setAuthMethod(method) {
+  authMethod = method === "employee" ? "employee" : "mobile";
+  methodButtons.forEach(button => {
+    const active = button.dataset.authMethod === authMethod;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  const isMobile = authMethod === "mobile";
+  identifierLabel.textContent = isMobile ? "شماره موبایل" : "کد پرسنلی";
+  inputPrefix.hidden = !isMobile;
+  mobileInput.placeholder = isMobile ? "۰۹۱۲۳۴۵۶۷۸۹" : "کد پرسنلی خود را وارد کنید";
+  mobileInput.maxLength = isMobile ? 13 : 64;
+  mobileInput.autocomplete = isMobile ? "tel" : "off";
+  mobileInput.inputMode = "numeric";
+  mobileInput.value = "";
+  showStatus("");
+  mobileInput.focus();
+}
+
+function stopResendCooldown() {
+  if (resendInterval !== null) window.clearInterval(resendInterval);
+  resendInterval = null;
+  resendSeconds = 0;
+  resendButton.disabled = false;
+  resendButton.textContent = "ارسال مجدد کد";
+}
+
+function startResendCooldown(seconds = 30) {
+  stopResendCooldown();
+  resendSeconds = seconds;
+  resendButton.disabled = true;
+  const updateLabel = () => {
+    resendButton.textContent = resendSeconds > 0
+      ? `ارسال مجدد کد ( ${resendSeconds} ثانیه )`
+      : "ارسال مجدد کد";
+  };
+  updateLabel();
+  resendInterval = window.setInterval(() => {
+    resendSeconds -= 1;
+    updateLabel();
+    if (resendSeconds <= 0) stopResendCooldown();
+  }, 1000);
+}
+
+async function submitIdentifier(event) {
   event.preventDefault();
-  const mobile = toAsciiDigits(mobileInput.value).replace(/[\s-]/g, "");
-  if (!/^09\d{9}$/.test(mobile)) {
+  if (requestInFlight) return;
+  const identifier = toAsciiDigits(mobileInput.value).replace(/[\s-]/g, "");
+
+  if (authMethod === "mobile" && !/^09\d{9}$/.test(identifier)) {
     showStatus("شماره موبایل را با قالب ۰۹xxxxxxxxx وارد کنید.", "error");
     mobileInput.focus();
     return;
   }
+  if (authMethod === "employee" && (!identifier || identifier.length > 64)) {
+    showStatus("کد پرسنلی معتبر نیست؛ اطلاعات را بررسی کنید.", "error");
+    mobileInput.focus();
+    return;
+  }
 
+  requestInFlight = true;
   showStatus("");
   setBusy(requestButton, true, "در حال ارسال…");
   try {
-    const result = await requestMobileOtp(mobile);
+    const result = authMethod === "mobile"
+      ? await requestMobileOtp(identifier)
+      : await requestEmployeeOtp(identifier);
     const requestId = typeof result?.request_id === "string" ? result.request_id.trim() : "";
     if (!requestId) {
-      showStatus("درخواست دریافت شد؛ اما Gateway شناسه لازم برای مرحله تأیید را در پاسخ ارائه نکرد. تا زمان اصلاح قرارداد پاسخ، امکان ادامه ورود وجود ندارد.", "warning");
+      showStatus("درخواست دریافت شد؛ اما Gateway شناسه لازم برای مرحله تأیید را ارائه نکرد. تا اصلاح قرارداد پاسخ، امکان ادامه ورود وجود ندارد.", "warning");
       return;
     }
     pendingRequestId = requestId;
-    pendingMobile = mobile;
-    phoneLabel.textContent = formatMobile(mobile);
+    pendingIdentifier = identifier;
+    startResendCooldown();
+    pendingMethod = authMethod;
+    phoneLabel.textContent = authMethod === "mobile"
+      ? formatMobile(identifier)
+      : "شماره موبایل ثبت‌شده در حساب سازمانی شما";
     otpInput.value = "";
     showPanel("otp");
     showStatus("کد تأیید ارسال شد. کد پیامک‌شده را وارد کنید.", "success");
@@ -114,12 +188,14 @@ async function submitMobile(event) {
   } catch (error) {
     showStatus(friendlyError(error), "error");
   } finally {
+    requestInFlight = false;
     setBusy(requestButton, false);
   }
 }
 
 async function submitOtp(event) {
   event.preventDefault();
+  if (verifyInFlight) return;
   if (!pendingRequestId) {
     showStatus("شناسه درخواست تأیید موجود نیست؛ دوباره درخواست کد کنید.", "error");
     return;
@@ -131,6 +207,7 @@ async function submitOtp(event) {
     return;
   }
 
+  verifyInFlight = true;
   showStatus("");
   setBusy(verifyButton, true, "در حال بررسی…");
   try {
@@ -140,13 +217,16 @@ async function submitOtp(event) {
   } catch (error) {
     showStatus(friendlyError(error), "error");
   } finally {
+    verifyInFlight = false;
     setBusy(verifyButton, false);
   }
 }
 
-function returnToMobile() {
+function returnToLogin() {
+  stopResendCooldown();
   pendingRequestId = null;
-  pendingMobile = null;
+  pendingIdentifier = null;
+  pendingMethod = null;
   otpInput.value = "";
   showPanel("login");
   showStatus("");
@@ -154,9 +234,11 @@ function returnToMobile() {
 }
 
 function logout() {
+  stopResendCooldown();
   clearAuthSession();
   pendingRequestId = null;
-  pendingMobile = null;
+  pendingIdentifier = null;
+  pendingMethod = null;
   otpInput.value = "";
   otpPanel.hidden = true;
   mobileForm.reset();
@@ -164,19 +246,27 @@ function logout() {
   showStatus("از حساب کاربری خارج شدید.", "info");
 }
 
-mobileForm.addEventListener("submit", submitMobile);
+methodButtons.forEach(button => {
+  button.addEventListener("click", () => setAuthMethod(button.dataset.authMethod));
+});
+mobileForm.addEventListener("submit", submitIdentifier);
 otpForm.addEventListener("submit", submitOtp);
 resendButton.addEventListener("click", () => {
-  if (pendingMobile) mobileInput.value = pendingMobile;
-  returnToMobile();
-  mobileForm.requestSubmit();
+  if (resendSeconds > 0 || requestInFlight || !pendingIdentifier) return;
+  if (pendingIdentifier) {
+    setAuthMethod(pendingMethod || "mobile");
+    mobileInput.value = pendingIdentifier;
+    mobileForm.requestSubmit();
+  }
 });
-backButton.addEventListener("click", returnToMobile);
+backButton.addEventListener("click", returnToLogin);
 logoutButton.addEventListener("click", logout);
 
 window.addEventListener("auth:expired", () => {
+  stopResendCooldown();
   pendingRequestId = null;
-  pendingMobile = null;
+  pendingIdentifier = null;
+  pendingMethod = null;
   showPanel("login");
   showStatus("اعتبار نشست به پایان رسیده است؛ دوباره وارد شوید.", "warning");
 });
