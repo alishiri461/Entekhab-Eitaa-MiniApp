@@ -36,7 +36,8 @@ function getGatewayBaseUrl() {
   if (parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new GatewayConfigurationError("Gateway URL must not contain credentials, query, or fragment.");
   }
-  return `${parsed.origin}${parsed.pathname.replace(/\\/$/, "")}`;
+  const pathname = parsed.pathname.endsWith("/") ? parsed.pathname.slice(0, -1) : parsed.pathname;
+  return `${parsed.origin}${pathname}`;
 }
 
 function extractErrorDetails(payload) {
@@ -70,6 +71,7 @@ export async function gatewayRequest(path, init = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let response;
+  let responseText;
   try {
     response = await fetch(`${baseUrl}${path}`, {
       ...init,
@@ -77,6 +79,7 @@ export async function gatewayRequest(path, init = {}) {
       signal: controller.signal,
       credentials: "omit",
     });
+    responseText = await response.text();
   } catch (error) {
     const timedOut = controller.signal.aborted;
     throw new GatewayRequestError(0, {
@@ -90,7 +93,6 @@ export async function gatewayRequest(path, init = {}) {
     window.clearTimeout(timeout);
   }
 
-  const responseText = await response.text();
   let payload;
   if (responseText) {
     try {
