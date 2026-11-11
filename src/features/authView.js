@@ -30,6 +30,10 @@ let authMethod = "mobile";
 let pendingRequestId = null;
 let pendingIdentifier = null;
 let pendingMethod = null;
+let requestInFlight = false;
+let verifyInFlight = false;
+let resendInterval = null;
+let resendSeconds = 0;
 
 function toAsciiDigits(value) {
   return String(value).replace(/[۰-۹٠-٩]/g, digit => {
@@ -114,8 +118,35 @@ function setAuthMethod(method) {
   mobileInput.focus();
 }
 
+function stopResendCooldown() {
+  if (resendInterval !== null) window.clearInterval(resendInterval);
+  resendInterval = null;
+  resendSeconds = 0;
+  resendButton.disabled = false;
+  resendButton.textContent = "ارسال مجدد کد";
+}
+
+function startResendCooldown(seconds = 30) {
+  stopResendCooldown();
+  resendSeconds = seconds;
+  resendButton.disabled = true;
+  const updateLabel = () => {
+    resendButton.textContent = resendSeconds > 0
+      ? `ارسال مجدد کد ( ${resendSeconds} ثانیه )`
+      : "ارسال مجدد کد";
+  };
+  updateLabel();
+  resendInterval = window.setInterval(() => {
+    resendSeconds -= 1;
+    updateLabel();
+    if (resendSeconds <= 0) stopResendCooldown();
+  }, 1000);
+}
+
 async function submitIdentifier(event) {
   event.preventDefault();
+  if (requestInFlight) return;
+  requestInFlight = true;
   const identifier = toAsciiDigits(mobileInput.value).replace(/[\s-]/g, "");
 
   if (authMethod === "mobile" && !/^09\d{9}$/.test(identifier)) {
@@ -142,6 +173,7 @@ async function submitIdentifier(event) {
     }
     pendingRequestId = requestId;
     pendingIdentifier = identifier;
+    startResendCooldown();
     pendingMethod = authMethod;
     phoneLabel.textContent = authMethod === "mobile"
       ? formatMobile(identifier)
@@ -153,12 +185,14 @@ async function submitIdentifier(event) {
   } catch (error) {
     showStatus(friendlyError(error), "error");
   } finally {
+    requestInFlight = false;
     setBusy(requestButton, false);
   }
 }
 
 async function submitOtp(event) {
   event.preventDefault();
+  if (verifyInFlight) return;
   if (!pendingRequestId) {
     showStatus("شناسه درخواست تأیید موجود نیست؛ دوباره درخواست کد کنید.", "error");
     return;
@@ -170,6 +204,7 @@ async function submitOtp(event) {
     return;
   }
 
+  verifyInFlight = true;
   showStatus("");
   setBusy(verifyButton, true, "در حال بررسی…");
   try {
@@ -179,11 +214,13 @@ async function submitOtp(event) {
   } catch (error) {
     showStatus(friendlyError(error), "error");
   } finally {
+    verifyInFlight = false;
     setBusy(verifyButton, false);
   }
 }
 
 function returnToLogin() {
+  stopResendCooldown();
   pendingRequestId = null;
   pendingIdentifier = null;
   pendingMethod = null;
@@ -194,6 +231,7 @@ function returnToLogin() {
 }
 
 function logout() {
+  stopResendCooldown();
   clearAuthSession();
   pendingRequestId = null;
   pendingIdentifier = null;
@@ -211,6 +249,7 @@ methodButtons.forEach(button => {
 mobileForm.addEventListener("submit", submitIdentifier);
 otpForm.addEventListener("submit", submitOtp);
 resendButton.addEventListener("click", () => {
+  if (resendSeconds > 0 || requestInFlight || !pendingIdentifier) return;
   if (pendingIdentifier) {
     setAuthMethod(pendingMethod || "mobile");
     mobileInput.value = pendingIdentifier;
