@@ -1,4 +1,6 @@
-const configuredGatewayUrl = window.APP_CONFIG?.gatewayBaseUrl?.trim();
+const REQUEST_TIMEOUT_MS = Number.isInteger(window.APP_CONFIG?.requestTimeoutMs)
+  ? Math.min(Math.max(window.APP_CONFIG.requestTimeoutMs, 1000), 60000)
+  : 15000;
 
 export class GatewayConfigurationError extends Error {
   constructor(message = "Gateway base URL is not configured or is not secure.") {
@@ -9,7 +11,7 @@ export class GatewayConfigurationError extends Error {
 
 export class GatewayRequestError extends Error {
   constructor(status, details = {}) {
-    super(details.message || `Gateway request failed with status ${status}.`);
+    super(details.message || (status === 0 ? "Gateway is unreachable." : `Gateway request failed with status ${status}.`));
     this.name = "GatewayRequestError";
     this.status = status;
     this.details = details;
@@ -17,6 +19,7 @@ export class GatewayRequestError extends Error {
 }
 
 function getGatewayBaseUrl() {
+  const configuredGatewayUrl = window.APP_CONFIG?.gatewayBaseUrl?.trim();
   if (!configuredGatewayUrl) throw new GatewayConfigurationError();
 
   let parsed;
@@ -33,8 +36,23 @@ function getGatewayBaseUrl() {
   if (parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new GatewayConfigurationError("Gateway URL must not contain credentials, query, or fragment.");
   }
+  return `${parsed.origin}${parsed.pathname.replace(/\\/$/, "")}`;
+}
 
-  return `${parsed.origin}${parsed.pathname.replace(/\/$/, "")}`;
+function extractErrorDetails(payload) {
+  if (!payload || typeof payload !== "object") return {};
+  const candidate = payload.error && typeof payload.error === "object"
+    ? payload.error
+    : payload.detail && typeof payload.detail === "object"
+      ? payload.detail
+      : {};
+  return {
+    code: typeof candidate.code === "string" ? candidate.code : undefined,
+    message: typeof candidate.message === "string" ? candidate.message : undefined,
+    request_id: typeof candidate.request_id === "string" ? candidate.request_id : undefined,
+    correlation_id: typeof candidate.correlation_id === "string" ? candidate.correlation_id : undefined,
+    retryable: typeof candidate.retryable === "boolean" ? candidate.retryable : undefined,
+  };
 }
 
 export async function gatewayRequest(path, init = {}) {
@@ -49,11 +67,28 @@ export async function gatewayRequest(path, init = {}) {
   headers.set("X-Client-Version", window.APP_CONFIG?.clientVersion || "1.0.0");
   headers.set("X-Contract-Version", window.APP_CONFIG?.contractVersion || "1");
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...init,
-    headers,
-    credentials: "omit",
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers,
+      signal: controller.signal,
+      credentials: "omit",
+    });
+  } catch (error) {
+    const timedOut = controller.signal.aborted;
+    throw new GatewayRequestError(0, {
+      code: timedOut ? "GATEWAY_TIMEOUT" : "GATEWAY_NETWORK_ERROR",
+      message: timedOut
+        ? "پاسخی از درگاه در زمان مقرر دریافت نشد. دوباره تلاش کنید."
+        : "ارتباط با درگاه برقرار نشد. اتصال اینترنت را بررسی کنید.",
+      retryable: true,
+    });
+  } finally {
+    window.clearTimeout(timeout);
+  }
 
   const responseText = await response.text();
   let payload;
@@ -70,17 +105,6 @@ export async function gatewayRequest(path, init = {}) {
     }
   }
 
-  if (!response.ok) {
-    const root = payload && typeof payload === "object" ? payload : {};
-    const nested = root.error && typeof root.error === "object" ? root.error : {};
-    throw new GatewayRequestError(response.status, {
-      code: typeof nested.code === "string" ? nested.code : undefined,
-      message: typeof nested.message === "string" ? nested.message : undefined,
-      request_id: typeof nested.request_id === "string" ? nested.request_id : undefined,
-      correlation_id: typeof nested.correlation_id === "string" ? nested.correlation_id : undefined,
-      retryable: typeof nested.retryable === "boolean" ? nested.retryable : undefined,
-    });
-  }
-
+  if (!response.ok) throw new GatewayRequestError(response.status, extractErrorDetails(payload));
   return payload;
 }
