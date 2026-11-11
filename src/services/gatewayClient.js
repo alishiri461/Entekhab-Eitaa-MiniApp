@@ -18,6 +18,17 @@ export class GatewayRequestError extends Error {
   }
 }
 
+function isPrivateIpv4(hostname) {
+  const octets = hostname.split(".").map(Number);
+  if (octets.length !== 4 || octets.some(value => !Number.isInteger(value) || value < 0 || value > 255)) {
+    return false;
+  }
+  const [first, second] = octets;
+  return first === 10 ||
+    (first === 172 && second >= 16 && second <= 31) ||
+    (first === 192 && second === 168);
+}
+
 function getGatewayBaseUrl() {
   const configuredGatewayUrl = window.APP_CONFIG?.gatewayBaseUrl?.trim();
   if (!configuredGatewayUrl) throw new GatewayConfigurationError();
@@ -30,8 +41,15 @@ function getGatewayBaseUrl() {
   }
 
   const isLocalDevelopmentHost = ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname);
-  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && isLocalDevelopmentHost)) {
-    throw new GatewayConfigurationError("Gateway must use HTTPS outside localhost development.");
+  const isExplicitPrivateLanDevelopment =
+    window.APP_CONFIG?.allowInsecureGatewayForDevelopment === true && isPrivateIpv4(parsed.hostname);
+  const isAllowedHttpDevelopment = parsed.protocol === "http:" &&
+    (isLocalDevelopmentHost || isExplicitPrivateLanDevelopment);
+
+  if (parsed.protocol !== "https:" && !isAllowedHttpDevelopment) {
+    throw new GatewayConfigurationError(
+      "Gateway must use HTTPS. HTTP is permitted only for localhost or explicitly enabled private-LAN development."
+    );
   }
   if (parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new GatewayConfigurationError("Gateway URL must not contain credentials, query, or fragment.");
