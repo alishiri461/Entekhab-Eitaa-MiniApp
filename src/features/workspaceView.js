@@ -105,4 +105,5 @@ document.querySelectorAll(".side-nav .nav-link,.mobile-nav-item").forEach(el=>{
 });
 document.querySelector(".sidebar-brand")?.addEventListener("click",event=>{event.preventDefault();navigate("home");});
 document.querySelector(".workspace-header .breadcrumb")?.addEventListener("click",()=>navigate("home"));
+window.addEventListener("auth:ready", () => render("home"));
 if(content && !workspace.hidden) render("home");
