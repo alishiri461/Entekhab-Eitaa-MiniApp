@@ -4,7 +4,7 @@
 
 این قرارداد با درنظرگرفتن شاخه `feature/eitaa-miniapp-employee-otp-2026-11-11` از مخزن `alishiri461/ApiGateWay` و شاخه Mini App جاری تطبیق داده شده است.
 
-- Gateway commit بررسی‌شده: `87b6ad71b3bd1de12c12f24483b3a39ef1430516`
+- Gateway commit بررسی‌شده: `aa26ea711dc7650c338ef4cf65774da5cbab43ab`
 - فایل‌های اصلی: `app/api/v1/channel.py`، `app/api/v1/identity_auth.py`، `app/api/v1/auth.py`، `app/api/v1/me.py`، `app/core/dependencies.py`، `app/models/contracts.py` و `app/main.py`
 - این بررسی Source-level است؛ تست، Build، استقرار یا درخواست زنده به Gateway اجرا نشده است.
 - قراردادهای زیر آنچه را کد فعلی پیاده‌سازی می‌کند از موارد نیازمند تنظیم استقرار جدا می‌کنند.
@@ -80,11 +80,7 @@ Challengeهای opaque و Rate Limiter فعلی process-local هستند. تا �
 
 در کد `require_public_or_service_identity`، مقدار `X-Client-ID` باید در `PUBLIC_USER_CLIENT_IDS` مجاز باشد و User Access Token نیز به‌صورت مستقل اعتبارسنجی می‌شود. مقدار Client ID به‌تنهایی احراز هویت نیست و نباید به‌عنوان اثبات اصالت WebView تلقی شود.
 
-مقدار پیش‌فرض فعلی در کد:
-- `enterprise-support-android`
-- `enterprise-support-web`
-
-شناسه اختصاصی Eitaa در این فهرست پیش‌فرض نیست. پیش از فعال‌سازی عملیاتی باید یک شناسه متمایز مانند `enterprise-support-eitaa` در تنظیمات محیط Gateway allowlist شود. استفاده از شناسه Web یا Android برای دور زدن این تنظیم توصیه نمی‌شود.
+شاخه Gateway مربوط به Mini App، `enterprise-support-eitaa` را به فهرست پیش‌فرض کلاینت‌های عمومی اضافه کرده است. اگر مقدار `PUBLIC_USER_CLIENT_IDS` در محیط عملیاتی صریحاً override شده باشد، این شناسه نیز باید در همان مقدار قرار گیرد. استفاده از شناسه Web یا Android به‌جای شناسه اختصاصی ایتا توصیه نمی‌شود.
 
 **Frontend نباید Service JWT، کلید خصوصی یا Bot Token دریافت، تولید یا ذخیره کند.** Service JWT فقط برای ارتباط backend-to-backend و با کلید خصوصی سمت سرور است.
 
