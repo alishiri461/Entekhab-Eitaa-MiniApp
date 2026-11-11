@@ -2,7 +2,7 @@
 
 ## مبنای بررسی
 
-این قرارداد بر اساس کد و مستندات شاخه `main` مخزن `alishiri461/ApiGateWay` استخراج شده است.
+این قرارداد با درنظرگرفتن شاخه `feature/eitaa-miniapp-employee-otp-2026-11-11` از مخزن `alishiri461/ApiGateWay` و شاخه Mini App جاری تطبیق داده شده است.
 
 - Gateway commit بررسی‌شده: `87b6ad71b3bd1de12c12f24483b3a39ef1430516`
 - فایل‌های اصلی: `app/api/v1/channel.py`، `app/api/v1/identity_auth.py`، `app/api/v1/auth.py`، `app/api/v1/me.py`، `app/core/dependencies.py`، `app/models/contracts.py` و `app/main.py`
@@ -11,113 +11,65 @@
 
 ## 1. احراز هویت کاربر
 
-### 1.1 مسیر پیشنهادی: OTP موبایل سازمانی
+### 1.1 مسیر canonical OTP برای Mini App ایتا
 
-Gateway در حال حاضر دو خانواده مسیر OTP دارد. برای کلاینت جدید، مسیر canonical زیر مناسب‌تر است؛ چون شناسه درخواست و پاسخ کاربر ساخت‌یافته دارد.
+هر دو روش ورود با موبایل و کد پرسنلی از endpointهای canonical Gateway استفاده می‌کنند. شناسه کلاینت `enterprise-support-eitaa` است و Gateway برای هر دو مرحله Request و Verify، داده خام امضاشده ایتا را در Header دریافت و سمت سرور اعتبارسنجی می‌کند.
 
 **درخواست OTP**
 
 `POST /api/v1/identity/otp/request`
 
-Header اجباری:
-`Idempotency-Key: <unique-operation-key>`
+Headerهای لازم در Mini App ایتا:
 
-بدنه؛ دقیقاً یکی از `mobile` یا `employee_id` باید ارسال شود:
+```http
+X-Client-ID: enterprise-support-eitaa
+X-Client-Version: 1.0.0
+X-Contract-Version: 1
+Idempotency-Key: <unique-operation-key>
+X-Eitaa-Init-Data: <raw-window.Eitaa.WebApp.initData>
+Content-Type: application/json
+```
+
+بدنه؛ دقیقاً یکی از `mobile` یا `employee_id`:
 
 ```json
-{
-  "mobile": "09xxxxxxxxx",
-  "channel": "sms"
-}
+{ "mobile": "09xxxxxxxxx", "channel": "sms" }
 ```
 
 یا:
 
 ```json
-{
-  "employee_id": "14033874",
-  "channel": "sms"
-}
+{ "employee_id": "14033874", "channel": "sms" }
 ```
 
-نکات اجرایی:
-- `channel` در مدل فعلی فقط مقدار `sms` را می‌پذیرد.
-- درخواست با `mobile` در مسیر canonical عمومی است.
-- درخواست با `employee_id` نیازمند Service JWT معتبر است؛ بنابراین Mini App مرورگر نباید این مسیر را مستقیماً با credential سرویس فراخوانی کند.
-- پاسخ عمومی ممکن است فقط `accepted` و `message` داشته باشد؛ نبودن `request_id` یعنی کلاینت نباید مرحله verify را اجرا کند. این رفتار برای جلوگیری از افشای وجود یا عدم وجود حساب است.
-- در صورت صدور challenge، پاسخ شامل `request_id`، `delivery_channel` و در صورت وجود `expires_in` خواهد بود.
-
-نمونه پاسخ دارای challenge:
-
-```json
-{
-  "accepted": true,
-  "message": "If the identity is eligible, an OTP will be sent.",
-  "request_id": "opaque-challenge-id",
-  "delivery_channel": "sms",
-  "expires_in": 180
-}
-```
+Gateway امضای `initData` را بررسی می‌کند. در حالت کد پرسنلی، Gateway با هویت سرویس سمت سرور به AD Manager متصل می‌شود؛ Mini App هرگز Service JWT یا credential سازمانی دریافت نمی‌کند. در حالت ایتا، `request_id` برگشتی یک handle opaque متعلق به Gateway است و شناسه داخلی AD Manager را افشا نمی‌کند. پاسخ برای شناسه واجد شرایط و غیرواجد شرایط از نظر ساختار عمومی است.
 
 **تأیید OTP**
 
 `POST /api/v1/identity/otp/verify`
 
-Header اجباری:
-`Idempotency-Key: <unique-operation-key>`
+Headerهای لازم:
+
+```http
+Idempotency-Key: <unique-operation-key>
+X-Eitaa-Init-Data: <fresh-raw-window.Eitaa.WebApp.initData>
+```
 
 بدنه:
 
 ```json
-{
-  "request_id": "opaque-challenge-id",
-  "code": "123456"
-}
+{ "request_id": "<opaque-gateway-handle>", "code": "123456" }
 ```
 
-قواعد:
-- `request_id` همان مقدار opaque دریافتی از مرحله request است.
-- `code` در مدل Gateway بین ۶ تا ۸ رقم است.
-- Gateway توکن دریافتی از AD Manager را اعتبارسنجی می‌کند و سازگاری `user.username`، `user.id` و claim `sub` را کنترل می‌کند.
-- پاسخ موفق شامل `access_token`، `token_type`، `expires_in` و `user` است.
-- این توکن، User Access Token صادرشده توسط AD Manager است؛ Service JWT نیست.
+Gateway در Verify نیز `initData` را مجدداً اعتبارسنجی و handle را به همان شناسه کاربر ایتا محدود می‌کند. پس از تأیید موفق، پاسخ شامل `access_token`، `token_type`، `expires_in` و `user` است. توکن خروجی User Access Token است، نه Service JWT.
 
-نمونه پاسخ موفق:
+### 1.2 سازگاری با بات بله
 
-```json
-{
-  "access_token": "<user-access-token>",
-  "token_type": "Bearer",
-  "expires_in": 3600,
-  "user": {
-    "id": "14033874",
-    "username": "14033874",
-    "display_name": "نام کاربر",
-    "roles": [],
-    "permissions": []
-  }
-}
-```
+جریان backend-to-backend بات بله تغییر نکرده است. بات بله برای عملیات کد پرسنلی همچنان Service JWT را فقط از Backend خود ارسال می‌کند. مسیر ایتا یک مسیر کلاینت عمومی با اثبات `initData` امضاشده است؛ این دو روش در Gateway به AD Manager متصل می‌شوند، اما credentialهای آن‌ها مشترک یا قابل انتقال به Frontend نیستند.
 
-مقادیر نمونه صرفاً نمایشی‌اند؛ عمر واقعی توکن باید از پاسخ Gateway خوانده شود.
+### 1.3 محدودیت فاز بدون Redis
 
-### 1.2 مسیرهای Legacy
-
-Gateway همچنان مسیرهای زیر را نیز پیاده‌سازی می‌کند:
-- `POST /api/v1/auth/mobile/request-otp` با بدنه `{ "mobile": "..." }`
-- `POST /api/v1/auth/mobile/verify-otp` با بدنه `{ "challenge_id": "...", "code": "..." }`
-
-این مسیرها `challenge_id` را به‌کار می‌برند و نباید با قرارداد canonical که از `request_id` استفاده می‌کند مخلوط شوند. برای Mini App جدید، مسیر canonical ترجیح داده می‌شود.
-
-### 1.3 اعتبارسنجی Eitaa
-
-در Gateway فعلی endpointی برای اعتبارسنجی `Eitaa initData` و تبدیل آن به User Access Token مشاهده نشد. همچنین کد فعلی، شناسه Eitaa را به حساب سازمانی متصل نمی‌کند.
-
-بنابراین در نسخه اول:
-- احراز هویت سازمانی با OTP موبایل ثبت‌شده در AD انجام می‌شود.
-- `initDataUnsafe` و شناسه/نام نمایشی Eitaa منبع مجوز یا هویت سازمانی نیستند.
-- اعتبارسنجی `initData` در صورت نیاز به اتصال حساب Eitaa، یک جریان جداگانه سمت سرور و نیازمند تصمیم امنیتی/پیاده‌سازی مستقل است.
-- سند `docs/EITAA_SERVICE_JWT_TRUST.md` درباره اعتماد Gateway به **Eitaa backend service JWT** است؛ این سند به معنی مجاز بودن قرار دادن Service JWT در Frontend یا وجود endpoint تبادل initData نیست.
+Challengeهای opaque و Rate Limiter فعلی process-local هستند. تا زمان افزودن storage مشترک، Gateway باید دقیقاً با یک Worker/Replica اجرا شود. Restart شدن Gateway، handleهای OTP فعال را باطل می‌کند. `Idempotency-Key` در این مرحله از نظر وجود و طول اعتبارسنجی می‌شود؛ replay-safe idempotency هنوز پیاده‌سازی نشده است. این وضعیت برای فاز توسعه/آزمایش محدود است و Production-ready محسوب نمی‌شود.
 
 ## 2. احراز هویت درخواست‌های محافظت‌شده
 
