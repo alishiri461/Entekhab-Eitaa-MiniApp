@@ -1,5 +1,6 @@
 import { getEitaaRuntime, notifyEitaaReady } from "./eitaa/eitaaBridge.js";
 import "./features/authView.js";
+import "./features/workspaceView.js";
 
 const runtime = getEitaaRuntime();
 const runtimeNote = document.querySelector("#runtime-note");
