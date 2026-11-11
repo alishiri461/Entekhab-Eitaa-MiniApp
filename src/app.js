@@ -13,4 +13,4 @@ if (runtime.available) {
   runtimeNote.textContent = "پیش‌نمایش مرورگر · هویت ایتا در این محیط در دسترس نیست";
 }
 
-notifyEitaaReady();
+window.addEventListener("auth:ready", () => {\n  const note = document.querySelector("#runtime-note");\n  if (note) note.textContent = runtime.available\n    ? `محیط ایتا شناسایی شد · ${runtime.platform || "platform نامشخص"}`\n    : "پیش‌نمایش مرورگر · هویت ایتا در این محیط در دسترس نیست";\n});\n\nnotifyEitaaReady();
