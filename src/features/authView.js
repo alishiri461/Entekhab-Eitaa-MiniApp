@@ -71,6 +71,7 @@ function friendlyError(error) {
       OTP_INVALID: "کد واردشده معتبر نیست.",
       OTP_EXPIRED: "مهلت کد تأیید به پایان رسیده است. کد جدید درخواست کنید.",
       UNAUTHORIZED: "درخواست مجاز نیست. دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.",
+      EITAA_INIT_DATA_INVALID: "نشست ایتا معتبر نیست یا منقضی شده است. برنامک را دوباره باز کنید.",
     };
     if (known[code]) return known[code];
     if (error.status >= 500) return "سرویس احراز هویت موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.";
@@ -115,9 +116,9 @@ function setAuthMethod(method) {
 
 async function submitIdentifier(event) {
   event.preventDefault();
-  const identifier = toAsciiDigits(mobileInput.value).replace(/[\\s-]/g, "");
+  const identifier = toAsciiDigits(mobileInput.value).replace(/[\s-]/g, "");
 
-  if (authMethod === "mobile" && !/^09\\d{9}$/.test(identifier)) {
+  if (authMethod === "mobile" && !/^09\d{9}$/.test(identifier)) {
     showStatus("شماره موبایل را با قالب ۰۹xxxxxxxxx وارد کنید.", "error");
     mobileInput.focus();
     return;
