@@ -1,4 +1,5 @@
 import { gatewayRequest } from "./gatewayClient.js";
+import { getEitaaRuntime } from "../eitaa/eitaaBridge.js";
 
 let currentSession = null;
 let expiryTimer = null;
@@ -24,6 +25,28 @@ export async function requestMobileOtp(mobile) {
       "Idempotency-Key": createIdempotencyKey(),
     },
     body: JSON.stringify({ mobile: normalizedMobile, channel: "sms" }),
+  });
+}
+
+export async function requestEmployeeOtp(employeeId) {
+  const normalizedEmployeeId = String(employeeId ?? "").trim();
+  if (!normalizedEmployeeId || normalizedEmployeeId.length > 64) {
+    throw new Error("کد پرسنلی معتبر نیست.");
+  }
+
+  const runtime = getEitaaRuntime();
+  if (!runtime.available || !runtime.initData) {
+    throw new Error("ورود با کد پرسنلی فقط داخل برنامک ایتا امکان‌پذیر است.");
+  }
+
+  return gatewayRequest("/api/v1/identity/otp/request", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": createIdempotencyKey(),
+      "X-Eitaa-Init-Data": runtime.initData,
+    },
+    body: JSON.stringify({ employee_id: normalizedEmployeeId, channel: "sms" }),
   });
 }
 
