@@ -76,6 +76,9 @@ function friendlyError(error) {
       OTP_EXPIRED: "مهلت کد تأیید به پایان رسیده است. کد جدید درخواست کنید.",
       UNAUTHORIZED: "درخواست مجاز نیست. دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.",
       EITAA_INIT_DATA_INVALID: "نشست ایتا معتبر نیست یا منقضی شده است. برنامک را دوباره باز کنید.",
+      GATEWAY_TIMEOUT: "پاسخی از درگاه دریافت نشد. اتصال را بررسی کنید و دوباره تلاش کنید.",
+      GATEWAY_NETWORK_ERROR: "ارتباط با درگاه برقرار نشد. اتصال اینترنت را بررسی کنید.",
+      OTP_INVALID_OR_EXPIRED: "کد یا درخواست تأیید معتبر نیست یا مهلت آن به پایان رسیده است. کد جدید درخواست کنید.",
     };
     if (known[code]) return known[code];
     if (error.status >= 500) return "سرویس احراز هویت موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.";
@@ -146,7 +149,6 @@ function startResendCooldown(seconds = 30) {
 async function submitIdentifier(event) {
   event.preventDefault();
   if (requestInFlight) return;
-  requestInFlight = true;
   const identifier = toAsciiDigits(mobileInput.value).replace(/[\s-]/g, "");
 
   if (authMethod === "mobile" && !/^09\d{9}$/.test(identifier)) {
@@ -160,6 +162,7 @@ async function submitIdentifier(event) {
     return;
   }
 
+  requestInFlight = true;
   showStatus("");
   setBusy(requestButton, true, "در حال ارسال…");
   try {
@@ -260,6 +263,7 @@ backButton.addEventListener("click", returnToLogin);
 logoutButton.addEventListener("click", logout);
 
 window.addEventListener("auth:expired", () => {
+  stopResendCooldown();
   pendingRequestId = null;
   pendingIdentifier = null;
   pendingMethod = null;
