@@ -5,6 +5,7 @@ const originalFetch = globalThis.fetch;
 globalThis.window = {
   APP_CONFIG: {
     gatewayBaseUrl: "https://gateway.example.test",
+    allowInsecureGatewayForDevelopment: false,
     clientId: "enterprise-support-eitaa",
     clientVersion: "1.0.0",
     contractVersion: "1",
@@ -26,10 +27,26 @@ test("rejects an unset Gateway URL before making a request", async () => {
   window.APP_CONFIG.gatewayBaseUrl = "https://gateway.example.test";
 });
 
-test("rejects insecure non-local Gateway URLs", async () => {
+test("rejects insecure public Gateway URLs", async () => {
   window.APP_CONFIG.gatewayBaseUrl = "http://gateway.example.test";
+  window.APP_CONFIG.allowInsecureGatewayForDevelopment = true;
   await assert.rejects(gatewayRequest("/api/v1/me"), GatewayConfigurationError);
   window.APP_CONFIG.gatewayBaseUrl = "https://gateway.example.test";
+  window.APP_CONFIG.allowInsecureGatewayForDevelopment = false;
+});
+
+test("allows HTTP to a private IPv4 Gateway only with the explicit development flag", async () => {
+  let capturedUrl;
+  window.APP_CONFIG.gatewayBaseUrl = "http://192.168.25.150:6100";
+  window.APP_CONFIG.allowInsecureGatewayForDevelopment = true;
+  globalThis.fetch = async url => {
+    capturedUrl = url;
+    return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
+  };
+  assert.deepEqual(await gatewayRequest("/health/live"), { status: "ok" });
+  assert.equal(capturedUrl, "http://192.168.25.150:6100/health/live");
+  window.APP_CONFIG.gatewayBaseUrl = "https://gateway.example.test";
+  window.APP_CONFIG.allowInsecureGatewayForDevelopment = false;
 });
 
 test("sends public client headers and omits browser credentials", async () => {
