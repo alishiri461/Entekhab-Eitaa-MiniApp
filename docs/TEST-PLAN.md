@@ -6,7 +6,9 @@
 
 ## پیش‌نیاز محیط
 
-- [ ] مقدار `gatewayBaseUrl` در `src/config.js` به URL واقعی HTTPS تنظیم شده باشد.
+- [ ] برای تست LAN، مقدار `gatewayBaseUrl` در `src/config.js` روی `http://192.168.25.150:6100` باشد و `allowInsecureGatewayForDevelopment` فقط در شاخه/محیط توسعه فعال باشد.
+- [ ] توجه شود که درخواست HTTP از صفحه HTTPS معمولاً به‌عنوان Mixed Content مسدود می‌شود؛ در نتیجه این تنظیم به‌تنهایی برای تست داخل WebView ایتا کافی نیست.
+- [ ] برای تست عملیاتی، `gatewayBaseUrl` به URL معتبر HTTPS تغییر کند و گزینه `allowInsecureGatewayForDevelopment` غیرفعال شود.
 - [ ] Origin دقیق میزبانی Mini App در CORS محیط Gateway مجاز شده باشد.
 - [ ] شناسه `enterprise-support-eitaa` در `PUBLIC_USER_CLIENT_IDS` محیط Gateway مجاز شده باشد.
 - [ ] مسیرهای OTP در Gateway در دسترس باشند.
@@ -40,7 +42,8 @@
 
 - [ ] خطای شبکه و CORS به پیام قابل فهم تبدیل شود.
 - [ ] خطای 4xx و 5xx Gateway بدون نمایش stack trace مدیریت شود.
-- [ ] Gateway با HTTP روی host غیرمحلی توسط کلاینت رد شود.
+- [ ] HTTP برای host عمومی رد شود؛ HTTP خصوصی فقط با گزینه توسعه صریح مجاز باشد.
+- [ ] در محیط HTTPS، رفتار Mixed Content بررسی و مسدودشدن احتمالی درخواست HTTP ثبت شود.
 - [ ] هیچ درخواست مستقیمی به Assistant، RAG، AD Manager یا Ticket Manager مشاهده نشود.
 - [ ] در DevTools هیچ Service JWT، Bot Token یا کلید خصوصی وجود نداشته باشد.
 - [ ] آزمون‌های OTP نامعتبر، منقضی، rate-limit و پاسخ بدون request_id انجام شوند.
@@ -61,7 +64,8 @@ npm test
 ```
 
 - [ ] رد کردن Gateway URL خالی
-- [ ] رد کردن HTTP برای میزبان غیرمحلی
+- [ ] رد کردن HTTP برای میزبان عمومی
+- [ ] اجازه HTTP به IPv4 خصوصی فقط با گزینه توسعه صریح
 - [ ] ارسال Headerهای عمومی کلاینت و عدم ارسال Cookie/Credentials
 - [ ] استخراج خطا از قالب FastAPI `detail`
 - [ ] Abort درخواست پس از Timeout تنظیم‌شده
