@@ -23,12 +23,15 @@
 
 ## آزمون قرارداد OTP
 
-- [ ] درخواست به `POST /api/v1/identity/otp/request` با `Idempotency-Key`، `mobile` و `channel=sms` ارسال شود.
-- [ ] اگر پاسخ `request_id` دارد، فرم ورود کد نمایش داده شود.
-- [ ] اگر پاسخ `request_id` ندارد، مرحله verify اجرا نشود و پیام مناسب نمایش داده شود.
+- [ ] درخواست OTP موبایل به `POST /api/v1/identity/otp/request` با `Idempotency-Key`، `X-Eitaa-Init-Data`، `mobile` و `channel=sms` ارسال شود.
+- [ ] درخواست OTP کد پرسنلی به همان endpoint با `Idempotency-Key`، `X-Eitaa-Init-Data`، `employee_id` و `channel=sms` ارسال شود.
+- [ ] هر دو درخواست فقط از WebView معتبر ایتا و با initData خام انجام شوند؛ `initDataUnsafe` برای احراز هویت استفاده نشود.
+- [ ] اگر پاسخ `request_id` دارد، فرم ورود کد نمایش داده شود؛ اگر ندارد، مرحله Verify اجرا نشود.
 - [ ] کد خارج از بازه ۶ تا ۸ رقم در UI رد شود.
-- [ ] درخواست verify فقط به `POST /api/v1/identity/otp/verify` و با `request_id` و `code` ارسال شود.
-- [ ] در پاسخ موفق، توکن و اطلاعات نشست فقط در حافظه runtime قرار گیرند.
+- [ ] درخواست Verify به `POST /api/v1/identity/otp/verify` با `request_id`، `code`، `Idempotency-Key` و `X-Eitaa-Init-Data` ارسال شود.
+- [ ] شناسه برگشتی برای کد پرسنلی opaque و متفاوت از شناسه Challenge داخلی AD Manager باشد.
+- [ ] تغییر یا انقضای initData در مرحله Verify توسط Gateway رد شود.
+- [ ] در پاسخ موفق، User Access Token و اطلاعات نشست فقط در حافظه runtime قرار گیرند.
 - [ ] هیچ توکن یا OTP در localStorage، sessionStorage یا log نوشته نشود.
 - [ ] با خروج کاربر، نشست حافظه پاک شود.
 - [ ] پس از `expires_in`، نشست پاک و کاربر به صفحه ورود برگردانده شود.
