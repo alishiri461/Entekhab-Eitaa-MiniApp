@@ -37,23 +37,27 @@
           <div class="auth-heading">
             <span class="eyebrow">خوش آمدید</span>
             <h2>ورود به حساب سازمانی</h2>
-            <p>برای دریافت خدمات، شماره موبایل ثبت‌شده در سامانه منابع انسانی را وارد کنید.</p>
+            <p>با شماره موبایل یا کد پرسنلی وارد شوید. در هر دو روش، تأیید نهایی با رمز یک‌بارمصرف انجام می‌شود.</p>
+          </div>
+          <div class="auth-method-switch" role="group" aria-label="روش ورود">
+            <button type="button" class="active" data-auth-method="mobile" aria-pressed="true">شماره موبایل</button>
+            <button type="button" data-auth-method="employee" aria-pressed="false">کد پرسنلی</button>
           </div>
           <form id="mobile-form" class="auth-form" novalidate>
-            <label for="mobile">شماره موبایل</label>
-            <div class="input-wrap"><span class="input-prefix" aria-hidden="true">+۹۸</span><input id="mobile" name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="13" dir="ltr" required></div>
+            <label id="identifier-label" for="mobile">شماره موبایل</label>
+            <div class="input-wrap"><span id="input-prefix" class="input-prefix" aria-hidden="true">+۹۸</span><input id="mobile" name="identifier" type="text" inputmode="numeric" autocomplete="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="13" dir="ltr" required></div>
             <button id="request-otp-button" class="primary-button" type="submit"><span>دریافت کد تأیید</span><b aria-hidden="true">←</b></button>
           </form>
           <div class="auth-assurance"><span class="lock-icon" aria-hidden="true">⌑</span><span>ورود امن با رمز یک‌بارمصرف پیامکی</span></div>
           </div>
           <div id="otp-panel" class="otp-panel" hidden>
-            <div class="otp-heading"><span class="step-chip">مرحله ۲ از ۲</span><h3>کد تأیید را وارد کنید</h3><p>کد ارسال‌شده به <b id="otp-phone" dir="ltr"></b> را وارد کنید.</p></div>
+            <div class="otp-heading"><span class="step-chip">مرحله ۲ از ۲</span><h3>کد تأیید را وارد کنید</h3><p>کد یک‌بارمصرف ارسال‌شده به <b id="otp-phone"></b> را وارد کنید.</p></div>
             <form id="otp-form" class="auth-form" novalidate>
               <label for="otp-code">کد یک‌بارمصرف</label>
               <input id="otp-code" class="otp-input" name="otp-code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="— — — — — —" maxlength="8" pattern="[0-9]{6,8}" dir="ltr" required>
               <button id="verify-otp-button" class="primary-button" type="submit"><span>تأیید و ورود</span><b aria-hidden="true">←</b></button>
             </form>
-            <div class="secondary-actions"><button id="resend-otp-button" class="text-button" type="button">ارسال مجدد کد</button><button id="back-to-mobile-button" class="text-button" type="button">تغییر شماره موبایل</button></div>
+            <div class="secondary-actions"><button id="resend-otp-button" class="text-button" type="button">ارسال مجدد کد</button><button id="back-to-mobile-button" class="text-button" type="button">تغییر روش ورود</button></div>
           </div>
           <p id="auth-status" class="auth-status" role="status" aria-live="polite" hidden></p>
           <p class="auth-legal">با ورود به سامانه، استفاده از خدمات در چارچوب ضوابط فناوری اطلاعات گروه انتخاب انجام می‌شود.</p>
