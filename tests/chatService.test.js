@@ -32,7 +32,6 @@ function authResponse() {
 }
 
 async function establishSession() {
-  globalThis.fetch = async () => authResponse();
   await verifyMobileOtp("opaque-request-id", "123456");
 }
 
