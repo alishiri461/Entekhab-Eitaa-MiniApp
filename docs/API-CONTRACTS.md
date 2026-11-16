@@ -229,8 +229,8 @@ Headerهای metadata قابل ارسال:
 
 ## 8. موانع استقرار که باید پیش از اتصال واقعی رفع/تأیید شوند
 
-1. **CORS:** در `app/main.py` فعلی Gateway، `allow_origins` به `http://192.168.25.150` محدود شده است. دامنه HTTPS نهایی Mini App در این allowlist نیست. اگر مرورگر Mini App مستقیماً Gateway را فراخوانی کند، origin واقعی باید به‌صورت صریح و امن در پیکربندی استقرار مجاز شود؛ از wildcard همراه credentials استفاده نشود.
-2. **Client allowlist:** شناسه `enterprise-support-eitaa` در مقدار پیش‌فرض `PUBLIC_USER_CLIENT_IDS` وجود ندارد و باید در محیط Gateway اضافه شود.
+1. **CORS:** در شاخه Gateway بررسی‌شده، `app/main.py` مقدار `Settings().cors_allowed_origins` را به Middleware می‌دهد و مقدار پیش‌فرض در `app/config/settings.py` فقط `http://192.168.25.150` است. origin نهایی HTTPS برنامک در این مقدار پیش‌فرض نیست؛ مقدار مؤثر محیط عملیاتی (از جمله override متغیر محیطی) باید با origin دقیق WebView تطبیق داده شود. از wildcard همراه credentials استفاده نشود.
+2. **Client allowlist:** مقدار پیش‌فرض `PUBLIC_USER_CLIENT_IDS` در همین شاخه کد Gateway شامل `enterprise-support-eitaa` است. بااین‌حال، اگر محیط عملیاتی این مقدار را override کرده باشد، باید وجود همین شناسه در مقدار مؤثر استقرار تأیید شود؛ صرف وجود مقدار پیش‌فرض، تنظیم محیط عملیاتی را اثبات نمی‌کند.
 3. **HTTPS:** دامنه عمومی Mini App و Gateway باید با TLS معتبر در دسترس باشند.
 4. **OTP policy:** مسیر mobile OTP عمومی است و باید rate limit، محدودیت تلاش، انقضای challenge و کنترل سوءاستفاده در محیط واقعی بررسی شوند.
 5. **RAG:** فقط proxyهای guide در Gateway مشاهده شدند؛ route جستجوی آزاد در Gateway هنوز مستند/پیاده‌سازی نشده است.
