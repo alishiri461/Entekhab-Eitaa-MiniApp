@@ -48,6 +48,19 @@
 - [ ] در DevTools هیچ Service JWT، Bot Token یا کلید خصوصی وجود نداشته باشد.
 - [ ] آزمون‌های OTP نامعتبر، منقضی، rate-limit و پاسخ بدون request_id انجام شوند.
 
+## آزمون واحد Chat adapter
+
+فایل `tests/chatService.test.js` با `fetch` ساختگی قرارداد کلاینت چت را بررسی می‌کند:
+
+- ارسال `POST /api/v1/chat` با بدنه `conversation_id` و `text`
+- ارسال User Access Token فقط در `X-User-Access-Token` و عدم ارسال Service JWT یا Authorization سرویس
+- ارسال `X-Client-ID` و `Idempotency-Key` و عدم ارسال Cookie/Credentials
+- اعتبارسنجی فیلدهای پاسخ `ChatResponse`
+- جلوگیری از ارسال بدون نشست معتبر و پاک‌سازی نشست حافظه‌ای پس از پاسخ 401
+- تولید شناسه گفتگوی opaque با طول مجاز Gateway
+
+این آزمون‌ها فقط قرارداد کلاینت را با پاسخ ساختگی بررسی می‌کنند؛ اتصال واقعی به Gateway، CORS، Assistant و Eitaa WebView را اثبات نمی‌کنند.
+
 ## آزمون محیط ایتا
 
 - [ ] Mini App در Eitaa Android باز شود.
