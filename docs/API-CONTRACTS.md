@@ -236,6 +236,7 @@ Headerهای metadata قابل ارسال:
 5. **RAG:** فقط proxyهای guide در Gateway مشاهده شدند؛ route جستجوی آزاد در Gateway هنوز مستند/پیاده‌سازی نشده است.
 6. **Token lifecycle:** مستند Gateway می‌گوید endpointهای refresh/revocation فعلاً وجود ندارند؛ کلاینت باید expiry را رعایت کند و پس از انقضا ورود مجدد بخواهد.
 7. **Runtime verification:** سازگاری واقعی نسخه‌های مستقر، شبکه، CORS و مجوزها با بررسی کد به‌تنهایی اثبات نمی‌شود.
+8. **وضعیت انتشار Gateway:** شاخه `feature/eitaa-miniapp-employee-otp-2026-11-11` در مقایسه با `main` تعداد ۲۶ commit جلوتر است. در `main` بررسی‌شده، مقدار پیش‌فرض `PUBLIC_USER_CLIENT_IDS` فقط Android و Web را دارد و `app/main.py` هدر `X-Eitaa-Init-Data` را در CORS مجاز نکرده است؛ تغییرات اعتبارسنجی Eitaa، allowlist و CORS در شاخه feature قرار دارند. بنابراین قرارداد OTP ایتا در این سند فقط با آن شاخه source-compatible است و تا زمان merge/release و استقرار آن نباید پشتیبانی OTP ایتا در محیط عملیاتی فرض شود.
 
 ## 9. قواعد امنیتی کلاینت
 
