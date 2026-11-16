@@ -1,8 +1,4 @@
-import {
-  GatewayConfigurationError,
-  GatewayRequestError,
-  gatewayRequest,
-} from "./gatewayClient.js";
+import { GatewayRequestError, gatewayRequest } from "./gatewayClient.js";
 import { clearAuthSession, getUserAccessToken } from "./authService.js";
 
 export class ChatContractError extends Error {
@@ -57,9 +53,6 @@ export async function sendChatMessage({ conversationId, text }) {
     if (error instanceof GatewayRequestError && error.status === 401) {
       clearAuthSession();
       window.dispatchEvent(new Event("auth:expired"));
-    }
-    if (error instanceof GatewayConfigurationError || error instanceof GatewayRequestError) {
-      throw error;
     }
     throw error;
   }
