@@ -36,7 +36,7 @@
 
 ## Phase 3 — Services
 
-- [ ] Chat با قرارداد واقعی `POST /api/v1/chat` و User Access Token
+- [x] پیاده‌سازی adapter و UI چت با قرارداد واقعی `POST /api/v1/chat`، User Access Token حافظه‌ای و Idempotency-Key؛ تست زنده Gateway هنوز انجام نشده است
 - [ ] Profile با قرارداد واقعی `GET /api/v1/me`
 - [ ] ثبت و پیگیری Ticket فقط از مسیرهای مستند Gateway
 - [ ] نمایش guideهای موجود از Gateway؛ جستجوی آزاد فقط پس از ارائه route واقعی
