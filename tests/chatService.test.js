@@ -15,12 +15,13 @@ globalThis.window = {
   Eitaa: { WebApp: { initData: "signed-eitaa-init-data" } },
   setTimeout,
   clearTimeout,
-  dispatchEvent() {},
+  dispatchEvent(event) { dispatchedEvents.push(event.type); },
 };
 
 const originalFetch = globalThis.fetch;
-const { verifyMobileOtp, clearAuthSession } = await import("../src/services/authService.js");
-const { sendChatMessage, ChatContractError } = await import("../src/services/chatService.js");
+const dispatchedEvents = [];
+const { verifyMobileOtp, clearAuthSession, getUserAccessToken } = await import("../src/services/authService.js");
+const { sendChatMessage, ChatContractError, createChatConversationId } = await import("../src/services/chatService.js");
 
 function authResponse() {
   return new Response(JSON.stringify({
@@ -35,7 +36,7 @@ async function establishSession() {
   await verifyMobileOtp("opaque-request-id", "123456");
 }
 
-test.afterEach(() => clearAuthSession());
+test.afterEach(() => { clearAuthSession(); dispatchedEvents.length = 0; });
 test.after(() => { globalThis.fetch = originalFetch; });
 
 test("sends chat through the Gateway with the in-memory user token and canonical payload", async () => {
@@ -107,4 +108,30 @@ test("rejects a response that does not satisfy the Gateway ChatResponse contract
     sendChatMessage({ conversationId: "conversation-1", text: "سلام" }),
     ChatContractError
   );
+});
+
+test("generates an opaque conversation identifier within the Gateway length limit", () => {
+  const id = createChatConversationId();
+  assert.match(id, /^eitaa-[a-f0-9]{32}$/);
+  assert.ok(id.length <= 64);
+});
+
+test("clears the in-memory session when Gateway rejects the user token", async () => {
+  globalThis.fetch = async (url) => {
+    if (url.endsWith("/api/v1/identity/otp/verify")) return authResponse();
+    return new Response(JSON.stringify({ detail: {
+      code: "AUTHENTICATION_FAILED",
+      message: "Authentication failed.",
+      retryable: false,
+    }}), { status: 401 });
+  };
+
+  await establishSession();
+  assert.equal(getUserAccessToken(), "user-access-token");
+  await assert.rejects(
+    sendChatMessage({ conversationId: "conversation-1", text: "سلام" }),
+    error => error.status === 401
+  );
+  assert.equal(getUserAccessToken(), null);
+  assert.ok(dispatchedEvents.includes("auth:expired"));
 });
