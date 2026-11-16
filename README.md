@@ -69,7 +69,7 @@ allowInsecureGatewayForDevelopment: true,
 
 ## وضعیت
 
-کد احراز هویت OTP و adapter چت بر اساس قراردادهای source-level Gateway پیاده‌سازی شده‌اند. تنظیم فعلی فقط endpoint شبکه داخلی را مشخص می‌کند؛ دسترسی‌پذیری IP و پورت، CORS، مقدار مؤثر allowlist، وابستگی‌های Backend و عملکرد داخل WebView هنوز تأیید نشده‌اند. تست واقعی در مرورگر و محیط ایتا باید جداگانه انجام شود.
+کد احراز هویت OTP ایتا بر اساس شاخه feature مربوط به Gateway و adapter چت بر اساس route موجود Gateway پیاده‌سازی شده‌اند. شاخه Eitaa Gateway در حال حاضر ۲۶ commit از `main` جلوتر است؛ `main` هنوز allowlist و CORS مربوط به Eitaa را ندارد، بنابراین OTP عملیاتی به merge/release و استقرار آن شاخه وابسته است. تنظیم فعلی کلاینت نیز HTTP شبکه داخلی است؛ دسترسی‌پذیری IP و پورت، CORS، مقدار مؤثر allowlist، وابستگی‌های Backend و عملکرد داخل WebView هنوز تأیید نشده‌اند.
 
 ## مستندات
 
