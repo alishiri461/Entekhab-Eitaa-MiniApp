@@ -1,10 +1,14 @@
 import { getAuthSession, clearAuthSession } from "../services/authService.js";
+import { createChatConversationId, sendChatMessage } from "../services/chatService.js";
 
 const content = document.querySelector(".workspace-content");
 const workspace = document.querySelector("#signed-in-panel");
 const pageTitles = { home: "نمای کلی", chat: "گفتگوی هوشمند", tickets: "درخواست‌های من", knowledge: "راهنما و دانش‌نامه", profile: "پروفایل سازمانی" };
 let activePage = "home";
-let chatMessages = [{ role: "assistant", text: "سلام! من همیار هوشمند فناوری اطلاعات انتخاب هستم. چه مسئله‌ای دارید؟" }];
+let chatMessages = [{ role: "assistant", text: "سلام! پیام خود را بنویسید تا از مسیر Gateway برای همیار انتخاب ارسال شود." }];
+let chatConversationId = null;
+let chatSending = false;
+let chatRequestVersion = 0;
 let ticketDraft = { category: "نرم‌افزار", priority: "عادی", title: "", description: "" };
 let searchTerm = "";
 
@@ -34,7 +38,11 @@ function homeView() {
   <div class="bottom-grid"><article class="info-panel"><div class="panel-heading"><div><span class="eyebrow">پیگیری خدمات</span><h2>درخواست‌های اخیر</h2></div><span class="panel-symbol">▤</span></div><div class="empty-state"><span class="empty-icon">⌁</span><strong>هنوز اطلاعاتی از درخواست‌ها دریافت نشده است</strong><p>پس از اتصال سرویس تیکت به Gateway، درخواست‌های شما در این قسمت نمایش داده می‌شوند.</p><button class="text-button" data-page="tickets">رفتن به درخواست‌های من ←</button></div></article><article class="support-panel"><div class="support-orb">؟</div><span class="eyebrow">پشتیبانی سازمانی</span><h2>در مسیر حل مسئله همراه شما هستیم</h2><p>برای مشکلات فوری، مطابق روال داخلی واحد فناوری اطلاعات اقدام کنید.</p><span class="support-note">اتصال Backend هنوز انجام نشده است.</span></article></div><footer class="workspace-footer"><span>همیار انتخاب · خدمات فناوری اطلاعات گروه انتخاب</span><span id="runtime-note">در حال شناسایی محیط اجرا…</span></footer>`;
 }
 function chatView() {
- return shell("گفتگوی هوشمند","پرسش خود را درباره خدمات و مشکلات فناوری اطلاعات مطرح کنید.",`<div class="chat-layout"><aside class="chat-aside"><div class="chat-aside-icon">✧</div><h3>همیار هوشمند انتخاب</h3><p>رابط گفتگو آماده است. پاسخ‌گویی هوشمند پس از اتصال به Gateway فعال می‌شود.</p><div class="connection-note"><span class="connection-dot"></span> ${statusPill()}</div><button class="outline-button" data-action="clear-chat">گفتگوی جدید</button></aside><div class="chat-panel"><div class="chat-panel-head"><div><strong>گفتگوی پشتیبانی</strong><small>پرسش خود را بنویسید</small></div><span class="chat-online">● رابط کاربری فعال</span></div><div class="chat-stream" id="chat-stream">${chatMessages.map(m=>`<div class="chat-message ${m.role === "user" ? "user-message" : "assistant-message"}"><span class="message-avatar">${m.role === "user" ? "ش" : "هـ"}</span><p>${escapeHtml(m.text)}</p></div>`).join("")}<div class="chat-disabled-hint">برای ارسال پیام واقعی، ابتدا آدرس و قرارداد Chat در Gateway تنظیم می‌شود.</div></div><form class="chat-composer" id="chat-form"><textarea id="chat-input" rows="1" placeholder="پیام خود را بنویسید…" aria-label="متن پیام" maxlength="2000"></textarea><button class="send-button" type="submit" aria-label="ارسال پیام" disabled>↑</button></form></div></div>`);
+ const messages = chatMessages.map(message=>`<div class="chat-message ${message.role === "user" ? "user-message" : "assistant-message"}"><span class="message-avatar">${message.role === "user" ? "ش" : "هـ"}</span><p>${escapeHtml(message.text)}</p></div>`).join("");
+ const hint = chatSending
+  ? "در حال دریافت پاسخ از Gateway…"
+  : "ارسال پیام به HTTPS، CORS و آماده‌بودن سرویس Assistant در Gateway وابسته است.";
+ return shell("گفتگوی هوشمند","پیام‌ها از مسیر رسمی Gateway و با User Access Token نشست جاری ارسال می‌شوند.",`<div class="chat-layout"><aside class="chat-aside"><div class="chat-aside-icon">✧</div><h3>همیار هوشمند انتخاب</h3><p>گفتگو از طریق endpoint رسمی Gateway انجام می‌شود؛ هیچ اتصال مستقیمی به Assistant وجود ندارد.</p><div class="connection-note"><span class="connection-dot"></span> ${statusPill(chatSending ? "در حال ارسال" : "آماده ارسال")}</div><button class="outline-button" data-action="clear-chat">گفتگوی جدید</button></aside><div class="chat-panel"><div class="chat-panel-head"><div><strong>گفتگوی پشتیبانی</strong><small>پرسش خود را بنویسید</small></div><span class="chat-online">${chatSending ? "● در حال پاسخ‌گویی" : "● مسیر Gateway"}</span></div><div class="chat-stream" id="chat-stream" aria-live="polite">${messages}<div class="chat-disabled-hint" role="status">${hint}</div></div><form class="chat-composer" id="chat-form"><textarea id="chat-input" rows="1" placeholder="پیام خود را بنویسید…" aria-label="متن پیام" maxlength="8000" ${chatSending ? "disabled" : ""}></textarea><button class="send-button" type="submit" aria-label="ارسال پیام" ${chatSending ? "disabled" : ""}>↑</button></form></div></div>`);
 }
 function ticketsView() {
  return shell("درخواست‌های پشتیبانی","اطلاعات مشکل را آماده کنید. ثبت نهایی پس از اتصال سرویس تیکت فعال خواهد شد.",`<div class="ticket-layout"><form id="ticket-form" class="surface-form"><div class="form-section-title"><span>۱</span><div><strong>شرح درخواست</strong><small>اطلاعات را دقیق و شفاف وارد کنید.</small></div></div><label for="ticket-title">عنوان درخواست</label><input id="ticket-title" name="title" maxlength="120" required placeholder="مثلاً: عدم اتصال به شبکه داخلی"><div class="form-two-col"><div><label for="ticket-category">دسته‌بندی</label><select id="ticket-category"><option>نرم‌افزار</option><option>سخت‌افزار</option><option>شبکه و اینترنت</option><option>حساب کاربری و دسترسی</option><option>سایر موارد</option></select></div><div><label for="ticket-priority">اولویت</label><select id="ticket-priority"><option>عادی</option><option>بالا</option><option>فوری</option></select></div></div><label for="ticket-description">شرح کامل مشکل</label><textarea id="ticket-description" rows="5" maxlength="3000" required placeholder="چه اتفاقی افتاده؟ از چه زمانی؟ چه پیامی مشاهده می‌کنید؟"></textarea><div class="form-footnote">اطلاعات واردشده فقط در همین صفحه نگهداری می‌شود و هنوز به سرور ارسال نمی‌شود.</div><button class="primary-button" type="submit"><span>بررسی و آماده‌سازی درخواست</span><b>←</b></button><p class="inline-feedback" id="ticket-feedback" role="status" aria-live="polite"></p></form><aside class="ticket-help"><span class="panel-symbol">i</span><h3>قبل از ثبت درخواست</h3><ul><li>عنوان کوتاه و مشخص انتخاب کنید.</li><li>متن خطا را در شرح مشکل بنویسید.</li><li>اطلاعات محرمانه و رمز عبور ارسال نکنید.</li></ul><div class="ticket-state-card">${statusPill()}<p>ثبت نهایی پس از اتصال Gateway و Ticket Manager انجام می‌شود.</p></div></aside></div>`);
@@ -71,18 +79,50 @@ workspace.addEventListener("click",event=>{
  const page=event.target.closest("[data-page]")?.dataset.page;
  if(page){event.preventDefault();navigate(page);return;}
  const action=event.target.closest("[data-action]")?.dataset.action;
- if(action==="clear-chat"){chatMessages=[{role:"assistant",text:"گفتگوی تازه شروع شد. پس از اتصال Gateway می‌توانید پرسش خود را ارسال کنید."}];render("chat");}
+ if(action==="clear-chat"){chatRequestVersion+=1;chatSending=false;chatConversationId=null;chatMessages=[{role:"assistant",text:"گفتگوی تازه شروع شد. پیام خود را بنویسید."}];render("chat");}
  if(action==="logout"){clearAuthSession();window.dispatchEvent(new Event("auth:expired"));}
 });
-workspace.addEventListener("submit",event=>{
+workspace.addEventListener("submit",async event=>{
  if(event.target.id==="chat-form"){
   event.preventDefault();
   const input=document.querySelector("#chat-input");
-  const text=input.value.trim();
-  if(!text)return;
-  chatMessages.push({role:"user",text});
-  chatMessages.push({role:"assistant",text:"پیام شما در رابط ثبت شد؛ برای دریافت پاسخ واقعی باید سرویس گفتگو به Gateway متصل شود."});
+  const message=input.value.trim();
+  if(!message||chatSending)return;
+  const requestVersion=++chatRequestVersion;
+  const pendingMessage={role:"assistant",text:"در حال دریافت پاسخ…",pending:true};
+  chatMessages.push({role:"user",text:message});
+  chatMessages.push(pendingMessage);
+  chatSending=true;
   render("chat");
+  try{
+   if(!chatConversationId)chatConversationId=createChatConversationId();
+   const result=await sendChatMessage({conversationId:chatConversationId,text:message});
+   if(requestVersion!==chatRequestVersion)return;
+   const pendingIndex=chatMessages.indexOf(pendingMessage);
+   if(pendingIndex>=0)chatMessages[pendingIndex]={role:"assistant",text:result.answer};
+  }catch(error){
+   if(requestVersion!==chatRequestVersion)return;
+   const pendingIndex=chatMessages.indexOf(pendingMessage);
+   const message=error?.name==="GatewayConfigurationError"
+    ?"آدرس امن Gateway تنظیم نشده است."
+    :error?.name==="GatewayRequestError"&&error.status===401
+     ?"نشست معتبر نیست یا منقضی شده است؛ دوباره وارد شوید."
+     :error?.name==="GatewayRequestError"&&error.status===403
+      ?"این حساب مجوز استفاده از سرویس گفتگو را ندارد."
+      :error?.name==="GatewayRequestError"&&error.status===429
+       ?"تعداد درخواست‌ها بیش از حد مجاز است؛ کمی بعد دوباره تلاش کنید."
+       :error?.name==="GatewayRequestError"&&error.status===0
+        ?"ارتباط با Gateway برقرار نشد؛ شبکه و تنظیمات CORS را بررسی کنید."
+        :error?.name==="GatewayRequestError"&&error.status>=500
+         ?"سرویس گفتگو موقتاً در دسترس نیست؛ بعداً دوباره تلاش کنید."
+         :"ارسال پیام انجام نشد؛ اطلاعات و وضعیت اتصال را بررسی کنید.";
+   if(pendingIndex>=0)chatMessages[pendingIndex]={role:"assistant",text:message};
+  }finally{
+   if(requestVersion===chatRequestVersion){
+    chatSending=false;
+    if(activePage==="chat")render("chat");
+   }
+  }
  }
  if(event.target.id==="ticket-form"){
   event.preventDefault();
@@ -94,7 +134,7 @@ workspace.addEventListener("submit",event=>{
  }
 });
 workspace.addEventListener("input",event=>{
- if(event.target.id==="chat-input") document.querySelector(".send-button").disabled=!event.target.value.trim();
+ if(event.target.id==="chat-input") document.querySelector(".send-button").disabled=chatSending||!event.target.value.trim();
  if(event.target.id==="knowledge-search"){searchTerm=event.target.value;const cursor=event.target.selectionStart;render("knowledge");const next=document.querySelector("#knowledge-search");next.focus();next.setSelectionRange(cursor,cursor);}
 });
 document.querySelectorAll(".side-nav .nav-link,.mobile-nav-item").forEach(el=>{
