@@ -84,3 +84,15 @@ npm test
 - [ ] Abort درخواست پس از Timeout تنظیم‌شده
 
 این آزمون‌ها جایگزین آزمون یکپارچه با Gateway و تست WebView ایتا نیستند.
+
+
+## آزمون واحد Profile adapter
+
+فایل `tests/profileService.test.js` قرارداد واقعی مدل `MeResponse(user: User)` را با پاسخ‌های ساختگی بررسی می‌کند:
+
+- ارسال `GET /api/v1/me` با `X-User-Access-Token` و بدون `Authorization` سرویس یا Cookie
+- عدم ارسال درخواست بدون نشست حافظه‌ای
+- الزام `user_id` و اعتبارسنجی نوع فیلدهای اختیاری و collectionها
+- پاک‌سازی نشست فقط در خطای احراز هویت کاربر؛ خطای allowlist کلاینت نباید نشست معتبر را حذف کند
+
+این تست‌ها قرارداد کلاینت را بررسی می‌کنند و جایگزین تست Gateway واقعی، CORS یا مجوز `enterprise-support-eitaa` نیستند.
