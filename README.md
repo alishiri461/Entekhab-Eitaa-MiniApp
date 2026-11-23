@@ -65,7 +65,7 @@ allowInsecureGatewayForDevelopment: true,
 - بات بله همچنان از قرارداد backend-to-backend و Service JWT خودش استفاده می‌کند؛ این قرارداد در Mini App کپی نشده است.
 - User Access Token فقط در حافظه JavaScript نگهداری می‌شود و در localStorage/sessionStorage قرار نمی‌گیرد.
 - پیام چت از طریق `POST /api/v1/chat` و Headerهای `X-User-Access-Token`، `X-Client-ID` و `Idempotency-Key` به Gateway ارسال می‌شود؛ شناسه گفتگو و توکن فقط در حافظه runtime هستند.
-- پروفایل زنده، تیکت‌ها و راهنماهای Gateway هنوز به UI متصل نشده‌اند. پاسخ چت نیز هنوز در محیط واقعی Gateway و WebView ایتا end-to-end تأیید نشده است.
+- پروفایل به `GET /api/v1/me` متصل است و UI آن از داده واقعی پاسخ Gateway تغذیه می‌شود؛ اتصال زنده هنوز تأیید نشده است. adapter فقط‌خواندنی فهرست/جزئیات تیکت اضافه شده، اما هنوز به UI وصل نیست و هیچ عملیات نوشتنی تیکت فعال نشده است. راهنماهای Gateway نیز هنوز به UI متصل نشده‌اند. پاسخ چت و پروفایل در محیط واقعی Gateway و WebView ایتا end-to-end تأیید نشده‌اند.
 
 ## وضعیت
 
