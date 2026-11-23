@@ -113,8 +113,8 @@ export async function listTickets({ limit = 25, offset = 0 } = {}) {
 
 export async function getTicket(ticketId) {
   const normalizedTicketId = String(ticketId ?? "").trim();
-  if (!normalizedTicketId || normalizedTicketId.length > 128) {
-    throw new TypeError("Ticket identifier is required and must not exceed 128 characters.");
+  if (!normalizedTicketId) {
+    throw new TypeError("Ticket identifier is required.");
   }
 
   const token = requireUserToken();
