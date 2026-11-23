@@ -129,7 +129,11 @@ test("loads a ticket detail using the canonical Jira issue key", async () => {
 
 test("rejects an empty ticket identifier before making a request", async () => {
   let called = false;
-  globalThis.fetch = async () => { called = true; throw new Error("fetch must not run"); };
+  globalThis.fetch = async (url) => {
+    if (url.endsWith("/api/v1/identity/otp/verify")) return authResponse();
+    called = true;
+    throw new Error("fetch must not run");
+  };
   await establishSession();
   await assert.rejects(getTicket(" "), TypeError);
   assert.equal(called, false);
