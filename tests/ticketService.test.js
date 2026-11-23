@@ -113,7 +113,7 @@ test("uses explicit pagination values and validates their range before fetch", a
   assert.equal(called, false);
 });
 
-test("loads a ticket detail using the opaque ticket_id path segment", async () => {
+test("loads a ticket detail using the canonical Jira issue key", async () => {
   let capturedUrl;
   globalThis.fetch = async (url, init) => {
     if (url.endsWith("/api/v1/identity/otp/verify")) return authResponse();
@@ -122,9 +122,17 @@ test("loads a ticket detail using the opaque ticket_id path segment", async () =
   };
 
   await establishSession();
-  const ticket = await getTicket("HELP/123");
-  assert.equal(capturedUrl, "https://gateway.example.test/api/v1/tickets/HELP%2F123");
+  const ticket = await getTicket("HELP-123");
+  assert.equal(capturedUrl, "https://gateway.example.test/api/v1/tickets/HELP-123");
   assert.equal(ticket.ticket_id, "HELP-123");
+});
+
+test("rejects an empty ticket identifier before making a request", async () => {
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error("fetch must not run"); };
+  await establishSession();
+  await assert.rejects(getTicket(" "), TypeError);
+  assert.equal(called, false);
 });
 
 test("does not call Gateway without an active in-memory user token", async () => {
