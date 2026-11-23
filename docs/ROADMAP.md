@@ -38,7 +38,9 @@
 
 - [x] پیاده‌سازی adapter و UI چت با قرارداد واقعی `POST /api/v1/chat`، User Access Token حافظه‌ای و Idempotency-Key؛ تست زنده Gateway هنوز انجام نشده است
 - [x] Profile adapter و UI با قرارداد واقعی `GET /api/v1/me`؛ آزمون زنده Gateway و تأیید allowlist/CORS هنوز انجام نشده است
-- [ ] ثبت و پیگیری Ticket فقط از مسیرهای مستند Gateway
+- [x] read-only adapter برای فهرست و جزئیات تیکت از مسیرهای canonical Gateway؛ UI و آزمون زنده هنوز متصل/اجرا نشده‌اند
+- [ ] اتصال UI فهرست و جزئیات تیکت به adapter و مدیریت pagination/خطا
+- [ ] ایجاد، نظر، ویرایش و تغییر وضعیت تیکت پس از تأیید اجرای قرارداد Ticket Manager و idempotency
 - [ ] نمایش guideهای موجود از Gateway؛ جستجوی آزاد فقط پس از ارائه route واقعی
 - [ ] مدیریت خطای شبکه، نشست منقضی، مجوز ناکافی و پاسخ نامعتبر
 - [ ] جلوگیری از نمایش داده نمونه به‌عنوان داده واقعی سازمانی
