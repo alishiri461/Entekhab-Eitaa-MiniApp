@@ -70,10 +70,10 @@
 
 ## آزمون خودکار Gateway Client
 
-پیش‌نیاز: Node.js نسخه ۱۸ یا بالاتر. آزمون‌ها به Gateway یا شبکه واقعی متصل نمی‌شوند و رفتار کلاینت HTTP را با پاسخ‌های ساختگی بررسی می‌کنند.
+پیش‌نیاز: Node.js نسخه ۲۲ یا بالاتر. چون پروژه عمداً `package.json` و مرحله Build ندارد، آزمون‌های ES Module با Node مستقیماً اجرا می‌شوند. آزمون‌ها به Gateway یا شبکه واقعی متصل نمی‌شوند و رفتار کلاینت HTTP را با پاسخ‌های ساختگی بررسی می‌کنند.
 
 ```bash
-npm test
+node --experimental-default-type=module --test tests/*.test.js
 ```
 
 - [ ] رد کردن Gateway URL خالی
@@ -96,3 +96,16 @@ npm test
 - پاک‌سازی نشست فقط در خطای احراز هویت کاربر؛ خطای allowlist کلاینت نباید نشست معتبر را حذف کند
 
 این تست‌ها قرارداد کلاینت را بررسی می‌کنند و جایگزین تست Gateway واقعی، CORS یا مجوز `enterprise-support-eitaa` نیستند.
+
+## آزمون واحد Ticket adapter
+
+فایل `tests/ticketService.test.js` قرارداد read-only تیکت را با `fetch` ساختگی بررسی می‌کند:
+
+- ارسال `GET /api/v1/tickets?limit=25&offset=0` با User Access Token حافظه‌ای
+- اعتبارسنجی envelope فهرست شامل `tickets`، `total`، `limit` و `offset`
+- اعتبارسنجی فیلدهای پایه ticket شامل `ticket_id`، `title` و `status`
+- ارسال جزئیات به `GET /api/v1/tickets/{ticket_id}` و encode کردن segment شناسه
+- رد کردن pagination نامعتبر و درخواست بدون نشست
+- پاک‌سازی نشست فقط در خطای صریح احراز هویت توکن کاربر
+
+این آزمون‌ها فقط رفتار adapter را با پاسخ ساختگی بررسی می‌کنند؛ اجرای واقعی Ticket Manager، مجوز کاربر، CORS و Gateway را اثبات نمی‌کنند. مسیرهای write هنوز در کلاینت فعال نشده‌اند.
