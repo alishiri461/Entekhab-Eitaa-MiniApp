@@ -31,7 +31,7 @@ function isObject(value) {
 }
 
 function validateUserProfile(user) {
-  if (!isObject(user) || typeof user.user_id !== "string" || !user.user_id.trim()) {
+  if (!isObject(user) || typeof user.user_id !== "string") {
     throw new ProfileContractError();
   }
 
