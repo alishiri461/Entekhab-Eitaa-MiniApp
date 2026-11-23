@@ -37,7 +37,7 @@
 ## Phase 3 — Services
 
 - [x] پیاده‌سازی adapter و UI چت با قرارداد واقعی `POST /api/v1/chat`، User Access Token حافظه‌ای و Idempotency-Key؛ تست زنده Gateway هنوز انجام نشده است
-- [ ] Profile با قرارداد واقعی `GET /api/v1/me`
+- [x] Profile adapter و UI با قرارداد واقعی `GET /api/v1/me`؛ آزمون زنده Gateway و تأیید allowlist/CORS هنوز انجام نشده است
 - [ ] ثبت و پیگیری Ticket فقط از مسیرهای مستند Gateway
 - [ ] نمایش guideهای موجود از Gateway؛ جستجوی آزاد فقط پس از ارائه route واقعی
 - [ ] مدیریت خطای شبکه، نشست منقضی، مجوز ناکافی و پاسخ نامعتبر
