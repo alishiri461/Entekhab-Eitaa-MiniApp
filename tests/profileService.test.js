@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
 
-globalThis.crypto = webcrypto;
+if (!globalThis.crypto?.getRandomValues) {
+  Object.defineProperty(globalThis, "crypto", { configurable: true, value: webcrypto });
+}
 globalThis.window = {
   APP_CONFIG: {
     gatewayBaseUrl: "https://gateway.example.test",
