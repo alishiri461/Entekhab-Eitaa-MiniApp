@@ -144,7 +144,10 @@ Gateway پاسخ Assistant را از اولین رشته غیرخالی در ف�
 Header:
 `X-User-Access-Token: <user-access-token>`
 
-پاسخ درون یک property به نام `user` قرار دارد. مدل Gateway فیلدهایی مانند `user_id`، `username`، `name`، `surname`، `email`، `employee_id`، `department`، `display_name`، `mobile`، `telephone`، `cost_center`، `job_title`، `office`، `groups`، `roles` و `permissions` را تعریف می‌کند؛ بسیاری از فیلدها اختیاری‌اند و ممکن است null یا خالی باشند.
+پاسخ درون یک property به نام `user` قرار دارد.
+
+**وضعیت پیاده‌سازی کلاینت:** adapter در `src/services/profileService.js` از `GET /api/v1/me` با `X-User-Access-Token` استفاده می‌کند و envelope پاسخ `{ "user": ... }` را اعتبارسنجی می‌کند. UI فقط فیلدهای موجود در مدل `User` جاری Gateway را نمایش می‌دهد؛ فیلدهای خارج از مدل مانند `sAMAccountName`، `enabled` و `locked` به‌عنوان داده قطعی فرض نمی‌شوند. این پیاده‌سازی source-level است و اتصال زنده هنوز تأیید نشده است.
+ مدل Gateway فیلدهایی مانند `user_id`، `username`، `name`، `surname`، `email`، `employee_id`، `department`، `display_name`، `mobile`، `telephone`، `cost_center`، `job_title`، `office`، `groups`، `roles` و `permissions` را تعریف می‌کند؛ بسیاری از فیلدها اختیاری‌اند و ممکن است null یا خالی باشند.
 
 قواعد:
 - نبودن داده اختیاری باید در UI درست مدیریت شود؛ مقدار ساختگی یا پیش‌فرض هویتی نساز.
