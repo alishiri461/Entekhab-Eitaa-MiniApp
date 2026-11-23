@@ -1,5 +1,6 @@
 import { getAuthSession, clearAuthSession } from "../services/authService.js";
 import { createChatConversationId, sendChatMessage } from "../services/chatService.js";
+import { getCurrentUserProfile } from "../services/profileService.js";
 
 const content = document.querySelector(".workspace-content");
 const workspace = document.querySelector("#signed-in-panel");
@@ -11,6 +12,8 @@ let chatSending = false;
 let chatRequestVersion = 0;
 let ticketDraft = { category: "نرم‌افزار", priority: "عادی", title: "", description: "" };
 let searchTerm = "";
+let profileState = { status: "idle", user: null, error: null };
+let profileRequestVersion = 0;
 
 const icon = { home:"⌂", chat:"✧", tickets:"▤", knowledge:"▧", profile:"◎" };
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[c]);
@@ -56,12 +59,89 @@ function knowledgeView() {
  const filtered = articles.filter(a=>a.join(" ").includes(searchTerm));
  return shell("راهنما و دانش‌نامه","راهنمای موردنیاز را جست‌وجو کنید. محتوای زیر نمونه رابط کاربری است، نه مقاله منتشرشده سازمان.",`<div class="knowledge-search"><span>⌕</span><input id="knowledge-search" value="${escapeHtml(searchTerm)}" placeholder="جست‌وجو در راهنماها…" aria-label="جست‌وجوی راهنما"></div><div class="knowledge-grid">${filtered.length ? filtered.map((a,i)=>`<article class="knowledge-card"><span class="knowledge-icon">${["⌘","◎","▤"][articles.indexOf(a)]}</span><small>${a[1]}</small><h3>${a[0]}</h3><p>${a[2]}</p><span class="knowledge-link">مشاهده راهنما <b>←</b></span></article>`).join("") : '<div class="empty-state knowledge-empty">موردی با این عبارت پیدا نشد.</div>'}</div><div class="knowledge-disclaimer">مقالات واقعی پس از اتصال دانش‌نامه سازمانی نمایش داده می‌شوند.</div>`);
 }
-function profileView() {
- const user = getAuthSession()?.user ?? {};
- const fields = [["نام نمایشی",user.display_name || user.name],["نام کاربری",user.username],["شناسه کاربر",user.id],["واحد سازمانی",user.department],["شماره همراه",user.mobile || user.phone]];
- return shell("پروفایل سازمانی","اطلاعاتی که در پاسخ احراز هویت Gateway موجود است.",`<div class="profile-layout"><div class="profile-card"><div class="profile-avatar">هـ</div><h2>${escapeHtml(user.display_name || user.name || user.username || "کاربر سازمانی")}</h2><p>حساب کاربری همیار انتخاب</p><div class="profile-tag">${statusPill("نشست فعال در حافظه")}</div></div><div class="profile-details"><div class="form-section-title"><span>✓</span><div><strong>اطلاعات حساب</strong><small>فقط فیلدهای موجود در پاسخ Gateway نمایش داده می‌شوند.</small></div></div><div class="profile-fields">${fields.filter(f=>f[1]).map(f=>`<div class="profile-field"><small>${f[0]}</small><strong>${escapeHtml(f[1])}</strong></div>`).join("") || '<p class="empty-profile">Gateway هنوز اطلاعات پروفایل را در نشست فعلی ارائه نکرده است.</p>'}</div><div class="profile-warning">توکن دسترسی در حافظه نگهداری می‌شود و در این صفحه نمایش داده نمی‌شود.</div><button class="outline-button danger-outline" data-action="logout">خروج از حساب کاربری</button></div></div>`);
+function profileErrorMessage(error) {
+ const code = error?.details?.code;
+ if (error?.name === "GatewayConfigurationError") return "آدرس امن Gateway تنظیم نشده است.";
+ if (code === "SERVICE_AUTHENTICATION_REQUIRED") return "شناسه enterprise-support-eitaa در allowlist عملیاتی Gateway مجاز نشده است.";
+ if (error?.status === 401) return "Gateway نشست کاربر را نپذیرفت؛ اعتبار نشست را بررسی کنید.";
+ if (error?.status === 403) return "این حساب مجوز مشاهده پروفایل را ندارد.";
+ if (error?.status === 0) return "ارتباط با Gateway برقرار نشد؛ HTTPS، شبکه و CORS را بررسی کنید.";
+ if (error?.status >= 500) return "سرویس هویت سازمانی در Gateway موقتاً در دسترس نیست.";
+ return "دریافت پروفایل انجام نشد؛ وضعیت اتصال و قرارداد پاسخ را بررسی کنید.";
 }
-function render(page) {
+function profileView() {
+ const user = profileState.user ?? {};
+ const fullName = [user.name, user.surname].filter(value => typeof value === "string" && value.trim()).join(" ");
+ const displayName = user.display_name || fullName || user.username || user.user_id || "کاربر سازمانی";
+ const fields = [
+  ["نام نمایشی", user.display_name || fullName],
+  ["نام کاربری", user.username],
+  ["شناسه کاربر", user.user_id],
+  ["کد پرسنلی", user.employee_id],
+  ["واحد سازمانی", user.department],
+  ["ایمیل سازمانی", user.email],
+  ["شماره همراه", user.mobile],
+  ["تلفن", user.telephone],
+  ["مرکز هزینه", user.cost_center],
+  ["عنوان شغلی", user.job_title],
+  ["محل خدمت", user.office],
+  ["آخرین تغییر گذرواژه", user.password_last_set]
+ ];
+ const fieldsMarkup = fields
+  .filter(([, value]) => typeof value === "string" && value.trim())
+  .map(([label, value]) => '<div class="profile-field"><small>' + escapeHtml(label) + '</small><strong>' + escapeHtml(value) + '</strong></div>')
+  .join("");
+ const collections = [
+  ["گروه‌های سازمانی", user.groups],
+  ["نقش‌ها", user.roles]
+ ].filter(([, values]) => Array.isArray(values) && values.length);
+ const collectionsMarkup = collections
+  .map(([label, values]) => '<div class="profile-field"><small>' + escapeHtml(label) + '</small><strong>' + escapeHtml(values.join("، ")) + '</strong></div>')
+  .join("");
+ let detailsMarkup;
+ if (profileState.status === "loading") {
+  detailsMarkup = '<p class="empty-profile" role="status">در حال دریافت پروفایل از Gateway…</p>';
+ } else if (profileState.status === "error") {
+  detailsMarkup = '<p class="empty-profile" role="alert">' + escapeHtml(profileErrorMessage(profileState.error)) + '</p>';
+ } else if (profileState.status === "loaded") {
+  detailsMarkup = fieldsMarkup + collectionsMarkup || '<p class="empty-profile">Gateway فیلد اختیاری قابل‌نمایشی برای این حساب برنگرداند.</p>';
+ } else {
+  detailsMarkup = '<p class="empty-profile">برای دریافت اطلاعات، پروفایل را به‌روزرسانی کنید.</p>';
+ }
+ const refreshDisabled = profileState.status === "loading" ? " disabled" : "";
+ const profileStatus = profileState.status === "loaded"
+  ? "دریافت‌شده از Gateway"
+  : profileState.status === "loading"
+   ? "در حال دریافت"
+   : profileState.status === "error"
+    ? "نیازمند بررسی اتصال"
+    : "دریافت از Gateway";
+ return shell("پروفایل سازمانی", "اطلاعات حساب از endpoint واقعی GET /api/v1/me دریافت می‌شود.", 
+  '<div class="profile-layout"><div class="profile-card"><div class="profile-avatar">هـ</div><h2>' + escapeHtml(displayName) + '</h2><p>حساب کاربری همیار انتخاب</p><div class="profile-tag">' + statusPill(profileStatus) + '</div></div>' +
+  '<div class="profile-details"><div class="form-section-title"><span>✓</span><div><strong>اطلاعات حساب</strong><small>فقط فیلدهای تعریف‌شده در مدل User در Gateway نمایش داده می‌شوند.</small></div></div>' +
+  '<div class="profile-fields">' + detailsMarkup + '</div>' +
+  '<div class="profile-warning">توکن دسترسی فقط در حافظه نگهداری می‌شود و به رابط کاربری نمایش داده نمی‌شود. اطلاعات این بخش از Gateway خوانده می‌شوند.</div>' +
+  '<div class="profile-actions"><button class="outline-button" data-action="reload-profile"' + refreshDisabled + '>به‌روزرسانی اطلاعات</button> <button class="outline-button danger-outline" data-action="logout">خروج از حساب کاربری</button></div></div></div>');
+}
+async function loadProfileData(force = false) {
+ if (profileState.status === "loading") return;
+ if (!force && profileState.status === "loaded") return;
+ const requestVersion = ++profileRequestVersion;
+ profileState = { status: "loading", user: null, error: null };
+ if (activePage === "profile") render("profile", { loadProfile: false });
+ try {
+  const user = await getCurrentUserProfile();
+  if (requestVersion !== profileRequestVersion) return;
+  profileState = { status: "loaded", user, error: null };
+ } catch (error) {
+  if (requestVersion !== profileRequestVersion) return;
+  profileState = { status: "error", user: null, error };
+ }
+ if (requestVersion === profileRequestVersion && activePage === "profile") {
+  render("profile", { loadProfile: false });
+ }
+}
+function render(page, options = {}) {
  activePage = pageTitles[page] ? page : "home";
  content.innerHTML = activePage === "home" ? homeView() : activePage === "chat" ? chatView() : activePage === "tickets" ? ticketsView() : activePage === "knowledge" ? knowledgeView() : profileView();
  document.querySelectorAll("[data-page]").forEach(el=>el.classList.toggle("active",el.dataset.page===activePage));
@@ -69,6 +149,9 @@ function render(page) {
  document.querySelector(".workspace-header .breadcrumb").setAttribute("aria-label",pageTitles[activePage]);
  document.querySelectorAll(".side-nav .nav-link,.mobile-nav-item").forEach(el=>el.classList.toggle("active",el.dataset.page===activePage));
  document.querySelectorAll(".side-nav .nav-link,.mobile-nav-item").forEach(el=>el.setAttribute("aria-current",el.dataset.page===activePage?"page":"false"));
+ if (options.loadProfile !== false && activePage === "profile" && profileState.status === "idle") {
+  void loadProfileData();
+ }
 }
 function navigate(page) {
  if (!pageTitles[page]) return;
@@ -79,8 +162,9 @@ workspace.addEventListener("click",event=>{
  const page=event.target.closest("[data-page]")?.dataset.page;
  if(page){event.preventDefault();navigate(page);return;}
  const action=event.target.closest("[data-action]")?.dataset.action;
+ if(action==="reload-profile"){void loadProfileData(true);return;}
  if(action==="clear-chat"){chatRequestVersion+=1;chatSending=false;chatConversationId=null;chatMessages=[{role:"assistant",text:"گفتگوی تازه شروع شد. پیام خود را بنویسید."}];render("chat");}
- if(action==="logout"){clearAuthSession();window.dispatchEvent(new Event("auth:expired"));}
+ if(action==="logout"){profileRequestVersion+=1;profileState={status:"idle",user:null,error:null};clearAuthSession();window.dispatchEvent(new Event("auth:expired"));}
 });
 workspace.addEventListener("submit",async event=>{
  if(event.target.id==="chat-form"){
@@ -145,5 +229,13 @@ document.querySelectorAll(".side-nav .nav-link,.mobile-nav-item").forEach(el=>{
 });
 document.querySelector(".sidebar-brand")?.addEventListener("click",event=>{event.preventDefault();navigate("home");});
 document.querySelector(".workspace-header .breadcrumb")?.addEventListener("click",()=>navigate("home"));
-window.addEventListener("auth:ready", () => render("home"));
+window.addEventListener("auth:ready", () => {
+ profileRequestVersion += 1;
+ profileState = { status: "idle", user: null, error: null };
+ render("home");
+});
+window.addEventListener("auth:expired", () => {
+ profileRequestVersion += 1;
+ profileState = { status: "idle", user: null, error: null };
+});
 if(content && !workspace.hidden) render("home");
