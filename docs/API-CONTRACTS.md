@@ -182,6 +182,14 @@ Header:
 
 شناسه عمومی تیکت `ticket_id` برابر Jira issue key مانند `HELP-3352` است؛ UUID یا شناسه دیتابیس نیست. کلاینت باید آن را به‌صورت رشته opaque نگهداری کند.
 
+**وضعیت adapter کلاینت:** در `src/services/ticketService.js` فقط عملیات read-only زیر پیاده‌سازی شده‌اند:
+- `listTickets()` با `GET /api/v1/tickets?limit=25&offset=0` و اعتبارسنجی envelope شامل `tickets`، `total`، `limit` و `offset`.
+- `getTicket(ticketId)` با `GET /api/v1/tickets/{ticket_id}` و اعتبارسنجی فیلدهای پایه `ticket_id`، `title` و `status`.
+
+این adapter از `X-User-Access-Token` حافظه‌ای استفاده می‌کند و هیچ Service JWT یا `Authorization` سرویس ارسال نمی‌کند. UI هنوز به این adapter متصل نشده و هیچ عملیات نوشتنی تیکت فعال نیست.
+
+**مرز قرارداد:** `channel.py` در Gateway مسیرهای `assigned-to-me` و `search` را نیز expose می‌کند، اما `docs/TICKET_API_CONTRACT_V1.md` برای آن دو مسیر envelope/DTO مشخصی تعریف نکرده است؛ بنابراین کلاینت فعلاً آن‌ها را مصرف نمی‌کند. مسیرهای create/comment/update/transition نیز تا تأیید قرارداد اجرایی Ticket Manager و سیاست idempotency در UI فعال نمی‌شوند.
+
 بدنه افزودن نظر:
 
 ```json
